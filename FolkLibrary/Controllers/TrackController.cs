@@ -25,10 +25,7 @@ public class TrackController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> Get(
-        [FromQuery] Guid? albumId,
-        [FromQuery] Guid? artistId,
-        [FromQuery] Guid? genreId)
+    public async Task<IActionResult> Get([FromQuery] Guid? albumId, [FromQuery] Guid? artistId, [FromQuery] Guid? genreId)
     {
         var specification = new GenericSpecification<Track>(createSpec);
         var response = await _mediator.Send(new TrackGetManyRequest { Specification = specification });

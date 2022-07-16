@@ -26,11 +26,7 @@ public class ArtistController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> Get(
-        [FromQuery] string? country,
-        [FromQuery] string? district,
-        [FromQuery] string? municipality,
-        [FromQuery] string? parish)
+    public async Task<IActionResult> Get([FromQuery] string? country, [FromQuery] string? district, [FromQuery] string? municipality, [FromQuery] string? parish)
     {
         var specification = new GenericSpecification<Artist>(createSpec);
         var response = await _mediator.Send(new ArtistGetManyRequest { Specification = specification });

@@ -53,7 +53,7 @@ using var context = new FolkLibraryContext(options);
 context.Database.EnsureDeleted();
 context.Database.EnsureCreated();
 
-var folk = context.Add(new Genre { Id = CreateId("Folk"), Name = "Folk", Type = "Genre" }).Entity;
+var folk = context.Add(new Genre { Name = "Folk", Type = "Genre" }).Entity;
 
 foreach (var artistFolder in Directory.EnumerateDirectories(@"D:\Music\Folk"))
 {
@@ -62,7 +62,6 @@ foreach (var artistFolder in Directory.EnumerateDirectories(@"D:\Music\Folk"))
     var artistDesc = JsonNode.Parse(File.ReadAllText(Path.Combine(artistFolder, "description.json")))!;
     var artist = new Artist
     {
-        Id = CreateId("Artist", artistName),
         Name = artistName,
         Type = "Artist",
         Country = (string)artistDesc["country"]!,
@@ -79,7 +78,6 @@ foreach (var artistFolder in Directory.EnumerateDirectories(@"D:\Music\Folk"))
         Console.WriteLine("\t{0}", albumName);
         var album = new Album
         {
-            Id = CreateId("Album", artistName, albumName),
             Name = albumName,
             Type = "Album",
             Year = null,
@@ -94,7 +92,6 @@ foreach (var artistFolder in Directory.EnumerateDirectories(@"D:\Music\Folk"))
             var tag = meta.Tag;
             var track = new Track
             {
-                Id = CreateId("Track", artistName, albumName, tag.Title),
                 Name = tag.Title,
                 Type = "Track",
                 Description = null,

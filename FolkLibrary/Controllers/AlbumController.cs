@@ -24,9 +24,7 @@ public sealed class AlbumController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> Get(
-        [FromQuery] Guid? artistId,
-        [FromQuery] Guid? genreId)
+    public async Task<IActionResult> Get([FromQuery] Guid? artistId, [FromQuery] Guid? genreId)
     {
         var specification = new GenericSpecification<Album>(createSpec);
         var response = await _mediator.Send(new AlbumGetManyRequest { Specification = specification });

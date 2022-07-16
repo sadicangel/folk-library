@@ -7,7 +7,7 @@ public abstract class Item
 {
     [Column(Order = 0)]
     [JsonPropertyOrder(-4)]
-    public Guid Id { get; set; }
+    public Guid Id { get; init; } = Guid.NewGuid();
 
     [Column(Order = 1)]
     [JsonPropertyOrder(-3)]

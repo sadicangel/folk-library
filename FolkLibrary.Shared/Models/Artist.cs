@@ -5,12 +5,13 @@ namespace FolkLibrary.Models;
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public sealed class Artist : Item, IEquatable<Artist>, IComparable<Artist>
 {
+    public int? Year { get; set; }
     public string Country { get; set; } = null!;
     public string? District { get; set; }
     public string? Municipality { get; set; }
     public string? Parish { get; set; }
-    public List<Album> Albums { get; set; } = null!;
-    public List<Track> Tracks { get; set; } = null!;
+    public List<Album> Albums { get; set; } = new();
+    public List<Track> Tracks { get; set; } = new();
 
     private string GetDebuggerDisplay() => Name;
     public bool Equals(Artist? other) => other is not null && Id == other.Id;

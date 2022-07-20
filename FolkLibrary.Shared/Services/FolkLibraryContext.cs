@@ -6,8 +6,8 @@ namespace FolkLibrary.Services;
 
 public sealed class FolkLibraryContext : DbContext
 {
-    [NotNull] public DbSet<Album>? Albums { get; set; }
     [NotNull] public DbSet<Artist>? Artists { get; set; }
+    [NotNull] public DbSet<Album>? Albums { get; set; }
     [NotNull] public DbSet<Track>? Tracks { get; set; }
     [NotNull] public DbSet<Genre>? Genres { get; set; }
 
@@ -17,11 +17,19 @@ public sealed class FolkLibraryContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Ignore<Item>();
+
         modelBuilder.Entity<Artist>(t =>
         {
             t.HasKey(e => e.Id);
+            //t.Property(e => e.Id)
+            // .ValueGeneratedNever();
+            t.Property(e => e.Type)
+             .IsRequired();
             t.Property(e => e.Name)
              .IsRequired();
+            t.Property(e => e.Description);
+            t.Property(e => e.Year);
             t.Property(e => e.Country)
              .IsRequired();
             t.Property(e => e.District);
@@ -32,6 +40,10 @@ public sealed class FolkLibraryContext : DbContext
         modelBuilder.Entity<Album>(t =>
         {
             t.HasKey(e => e.Id);
+            //t.Property(e => e.Id)
+            // .ValueGeneratedNever();
+            t.Property(e => e.Type)
+             .IsRequired();
             t.Property(e => e.Name)
              .IsRequired();
             t.Property(e => e.Description);
@@ -49,17 +61,23 @@ public sealed class FolkLibraryContext : DbContext
 
             t.HasMany(e => e.Tracks)
              .WithOne(e => e.Album)
+             .OnDelete(DeleteBehavior.Cascade)
              .IsRequired();
         });
 
         modelBuilder.Entity<Track>(t =>
         {
             t.HasKey(e => e.Id);
+            //t.Property(e => e.Id)
+            // .ValueGeneratedNever();
+            t.Property(e => e.Type)
+             .IsRequired();
             t.Property(e => e.Name)
              .IsRequired();
             t.Property(e => e.Description);
             t.Property(e => e.Number);
             t.Property(e => e.Duration);
+            t.Property(e => e.Year);
 
             t.HasMany(e => e.Artists)
              .WithMany(e => e.Tracks)
@@ -73,16 +91,13 @@ public sealed class FolkLibraryContext : DbContext
         modelBuilder.Entity<Genre>(t =>
         {
             t.HasKey(e => e.Id);
+            //t.Property(e => e.Id)
+            // .ValueGeneratedNever();
+            t.Property(e => e.Type)
+             .IsRequired();
             t.Property(e => e.Name)
              .IsRequired();
-
-            t.HasMany(e => e.Albums)
-             .WithMany(e => e.Genres)
-             .UsingEntity<AlbumGenre>();
-
-            t.HasMany(e => e.Tracks)
-             .WithMany(e => e.Genres)
-             .UsingEntity<TrackGenre>();
+            t.Property(e => e.Description);
         });
     }
 }

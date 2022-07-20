@@ -8,9 +8,9 @@ public sealed class Album : Item, IEquatable<Album>, IComparable<Album>
     public int? Year { get; set; }
     public int TrackCount { get; set; }
     public TimeSpan Duration { get; set; }
-    public HashSet<Artist> Artists { get; set; } = null!;
-    public HashSet<Genre> Genres { get; set; } = null!;
-    public List<Track> Tracks { get; set; } = null!;
+    public HashSet<Artist> Artists { get; set; } = new();
+    public HashSet<Genre> Genres { get; set; } = new();
+    public List<Track> Tracks { get; set; } = new();
 
     private string GetDebuggerDisplay() => $"{Name} ({Duration:mm\\:ss})";
     public bool Equals(Album? other) => other is not null && Id == other.Id;

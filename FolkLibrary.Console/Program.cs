@@ -3,7 +3,7 @@ using FolkLibrary.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json.Nodes;
+using System.Text.Json;
 
 static string Encode(ReadOnlySpan<byte> bytes)
 {
@@ -48,29 +48,42 @@ static Guid CreateId(params string[] values)
 var options = new DbContextOptionsBuilder()
     .UseSqlite(@"DataSource=D:\Development\folk-library\FolkLibrary\db.sqlite")
     .EnableSensitiveDataLogging()
+    .LogTo(Console.WriteLine)
     .Options;
 using var context = new FolkLibraryContext(options);
 context.Database.EnsureDeleted();
 context.Database.EnsureCreated();
 
-var folk = context.Add(new Genre { Name = "Folk", Type = "Genre" }).Entity;
+var folk = context.Add(new Genre { Name = "Folk" }).Entity;
 
+var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 foreach (var artistFolder in Directory.EnumerateDirectories(@"D:\Music\Folk"))
 {
     var artistName = Path.GetFileName(artistFolder);
     Console.WriteLine(artistName);
-    var artistDesc = JsonNode.Parse(File.ReadAllText(Path.Combine(artistFolder, "description.json")))!;
-    var artist = new Artist
+    var artists = new HashSet<Artist>();
+    bool isSingleArtist = false;
+    try
     {
-        Name = artistName,
-        Type = "Artist",
-        Country = (string)artistDesc["country"]!,
-        District = (string?)artistDesc["district"],
-        Municipality = (string?)artistDesc["municipality"],
-        Parish = (string?)artistDesc["parish"],
-        Albums = new(),
-        Tracks = new(),
-    };
+        var singleArtist = JsonSerializer.Deserialize<Artist>(File.ReadAllText(Path.Combine(artistFolder, "info.json")), jsonOptions)!;
+        artists.Add(singleArtist);
+        isSingleArtist = true;
+        if (singleArtist.Name == "Rancho Os Companheiros do Folclore de Versailles")
+            Console.WriteLine();
+    }
+    catch
+    {
+        if (artistName != "Vários Artistas")
+            throw;
+        continue;
+    }
+
+    foreach (var artist in artists)
+    {
+        context.Artists.Update(artist);
+        if (!artist.Tracks.Any() || !artist.Albums.Any())
+            Console.WriteLine();
+    }
 
     foreach (var albumFolder in Directory.EnumerateDirectories(artistFolder))
     {
@@ -79,7 +92,6 @@ foreach (var artistFolder in Directory.EnumerateDirectories(@"D:\Music\Folk"))
         var album = new Album
         {
             Name = albumName,
-            Type = "Album",
             Year = null,
             Description = null,
             Genres = new HashSet<Genre> { folk },
@@ -93,24 +105,33 @@ foreach (var artistFolder in Directory.EnumerateDirectories(@"D:\Music\Folk"))
             var track = new Track
             {
                 Name = tag.Title,
-                Type = "Track",
                 Description = null,
                 Number = (int)tag.Track,
                 Year = tag.Year != 0 ? (int)tag.Year : null,
                 Duration = meta.Properties.Duration,
                 Genres = new HashSet<Genre> { folk },
             };
+            if(track.Name is null)
+                Console.WriteLine();
 
-            artist.Tracks.Add(track);
+            if (!isSingleArtist)
+            {
+                artists.UnionWith(context.Artists.Where(a => meta.Tag.Performers.Contains(a.Name)));
+                if (artists.Count != meta.Tag.Performers.Length)
+                    throw new Exception();
+            }
+
+            foreach (var artist in artists)
+                artist.Tracks.Add(track);
             album.Tracks.Add(track);
             album.TrackCount++;
             album.Duration += track.Duration;
         }
 
-        artist.Albums.Add(album);
+        foreach (var artist in artists)
+            artist.Albums.Add(album);
     }
     Console.WriteLine();
-    context.Artists.Add(artist);
 }
 
 context.SaveChanges();

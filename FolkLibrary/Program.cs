@@ -11,10 +11,7 @@ builder.Services.AddAutoMapper(typeof(Program), typeof(IAssemblyMarker));
 builder.Services.AddMediatR(typeof(Program), typeof(IAssemblyMarker));
 
 builder.Services.AddControllers()
-    .AddJsonOptions(opts =>
-    {
-        opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
-    });
+    .AddJsonOptions(opts => opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

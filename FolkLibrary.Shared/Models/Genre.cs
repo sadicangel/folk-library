@@ -5,8 +5,8 @@ namespace FolkLibrary.Models;
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public sealed class Genre : Item, IEquatable<Genre>, IComparable<Genre>
 {
-    public List<Album> Albums { get; set; } = null!;
-    public List<Track> Tracks { get; set; } = null!;
+    public List<Album> Albums { get; set; } = new();
+    public List<Track> Tracks { get; set; } = new();
 
     private string GetDebuggerDisplay() => Name;
     public int CompareTo(Genre? other) => throw new NotImplementedException();

@@ -1,4 +1,5 @@
-﻿using FolkLibrary.Models;
+﻿using FolkLibrary.IO;
+using FolkLibrary.Models;
 using FolkLibrary.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
@@ -47,8 +48,8 @@ static Guid CreateId(params string[] values)
 
 var options = new DbContextOptionsBuilder()
     .UseSqlite(@"DataSource=D:\Development\folk-library\FolkLibrary\db.sqlite")
-    .EnableSensitiveDataLogging()
-    .LogTo(Console.WriteLine)
+    //.EnableSensitiveDataLogging()
+    //.LogTo(Console.WriteLine)
     .Options;
 using var context = new FolkLibraryContext(options);
 context.Database.EnsureDeleted();
@@ -66,13 +67,17 @@ foreach (var artistFolder in Directory.EnumerateDirectories(@"D:\Music\Folk"))
     try
     {
         var singleArtist = JsonSerializer.Deserialize<Artist>(File.ReadAllText(Path.Combine(artistFolder, "info.json")), jsonOptions)!;
+        if (singleArtist.Name != artistName)
+            throw new AlbumReadException($"Folder '{artistName}' != ArtistName {singleArtist.Name}");
         artists.Add(singleArtist);
         isSingleArtist = true;
         if (singleArtist.Name == "Rancho Os Companheiros do Folclore de Versailles")
             Console.WriteLine();
     }
-    catch
+    catch(Exception ex)
     {
+        if (ex is AlbumReadException)
+            throw;
         if (artistName != "Vários Artistas")
             throw;
         continue;

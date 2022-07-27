@@ -99,5 +99,7 @@ public sealed class FolkLibraryContext : DbContext
              .IsRequired();
             t.Property(e => e.Description);
         });
+
+        modelBuilder.Entity<AlbumArtist>().ToTable(nameof(AlbumArtist));
     }
 }

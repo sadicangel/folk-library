@@ -3,7 +3,6 @@ using FolkLibrary.Commands;
 using FolkLibrary.Commands.Artists;
 using FolkLibrary.Models;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FolkLibrary.Controllers;
@@ -18,32 +17,14 @@ public class ArtistController : ControllerBase
     {
         _mediator = mediator;
     }
-
-    private static void BuildSpec(ISpecificationBuilder<Artist> builder)
-    {
-        builder.Include(a => a.Albums).Include(t => t.Tracks).AsNoTracking();
-    }
-
+    
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Get([FromQuery] string? country, [FromQuery] string? district, [FromQuery] string? municipality, [FromQuery] string? parish)
     {
-        var specification = new GenericSpecification<Artist>(createSpec);
+        var specification = new GenericSpecification<Artist>(builder => builder.GetAll(country, district, municipality, parish));
         var response = await _mediator.Send(new ArtistGetManyRequest { Specification = specification });
         return Ok(response);
-
-        void createSpec(ISpecificationBuilder<Artist> builder)
-        {
-            BuildSpec(builder);
-            if (country is not null)
-                builder.Where(a => a.Country == country);
-            if (district is not null)
-                builder.Where(a => a.District == district);
-            if (municipality is not null)
-                builder.Where(a => a.Municipality == municipality);
-            if (parish is not null)
-                builder.Where(a => a.Parish == parish);
-        }
     }
 
     [HttpGet("{albumId}")]
@@ -51,7 +32,7 @@ public class ArtistController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get([FromRoute] Guid albumId)
     {
-        var specification = new GenericSingleResultSpecification<Artist>(albumId, BuildSpec);
+        var specification = new GenericSingleResultSpecification<Artist>(albumId, builder => builder.Configure());
         var response = await _mediator.Send(new ArtistGetSingleRequest { Specification = specification });
         if (response is null)
             return NotFound(albumId);

@@ -9,6 +9,7 @@ public sealed class GenreProfile : Profile
     public GenreProfile()
     {
         CreateMap<Genre, ItemReadDto>();
+        CreateMap<Genre, GenreReadDtoBase>();
         CreateMap<Genre, GenreReadDto>();
     }
 }

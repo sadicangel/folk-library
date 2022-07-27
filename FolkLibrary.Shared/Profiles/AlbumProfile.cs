@@ -8,6 +8,7 @@ public sealed class AlbumProfile : Profile
     public AlbumProfile()
     {
         CreateMap<Album, ItemReadDto>();
+        CreateMap<Album, AlbumReadDtoBase>();
         CreateMap<Album, AlbumReadDto>();
     }
 }

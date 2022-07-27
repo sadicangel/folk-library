@@ -9,6 +9,7 @@ public sealed class TrackProfile : Profile
     public TrackProfile()
     {
         CreateMap<Track, ItemReadDto>();
+        CreateMap<Track, TrackReadDtoBase>();
         CreateMap<Track, TrackReadDto>();
     }
 }

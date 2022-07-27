@@ -17,27 +17,13 @@ public sealed class AlbumController : ControllerBase
         _mediator = mediator;
     }
 
-    private static void BuildSpec(ISpecificationBuilder<Album> builder)
-    {
-        builder.Include(a => a.Artists).Include(g => g.Genres).Include(t => t.Tracks).AsNoTracking();
-    }
-
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Get([FromQuery] Guid? artistId, [FromQuery] Guid? genreId)
     {
-        var specification = new GenericSpecification<Album>(createSpec);
+        var specification = new GenericSpecification<Album>(builder => builder.GetAll(artistId, genreId));
         var response = await _mediator.Send(new AlbumGetManyRequest { Specification = specification });
         return Ok(response);
-
-        void createSpec(ISpecificationBuilder<Album> builder)
-        {
-            BuildSpec(builder);
-            if (artistId is not null)
-                builder.Where(a => a.Artists.Any(g => g.Id == artistId));
-            if (genreId is not null)
-                builder.Where(a => a.Genres.Any(g => g.Id == genreId));
-        }
     }
 
     [HttpGet("{albumId}")]
@@ -45,7 +31,7 @@ public sealed class AlbumController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Get([FromRoute] Guid albumId)
     {
-        var specification = new GenericSingleResultSpecification<Album>(albumId, BuildSpec);
+        var specification = new GenericSingleResultSpecification<Album>(albumId, builder => builder.GetAll());
         var response = await _mediator.Send(new AlbumGetSingleRequest { Specification = specification });
         if (response is null)
             return NotFound(albumId);

@@ -349,3 +349,4 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 *.sqlite
+/FolkLibrary/ClientApp/.angular/cache/14.1.0

@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.Shared", "FolkL
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.Console", "FolkLibrary.Console\FolkLibrary.Console.csproj", "{FAC62709-8A6C-47C7-94BF-DAD5AF6DD534}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FolkLibrary", "FolkLibrary\FolkLibrary.csproj", "{CAB96765-CE9C-48B4-8A23-AB32A7EF2EEB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FolkLibrary", "FolkLibrary\FolkLibrary.csproj", "{4E3A7754-1919-402A-8945-C7D107A74116}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{FAC62709-8A6C-47C7-94BF-DAD5AF6DD534}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FAC62709-8A6C-47C7-94BF-DAD5AF6DD534}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FAC62709-8A6C-47C7-94BF-DAD5AF6DD534}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CAB96765-CE9C-48B4-8A23-AB32A7EF2EEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CAB96765-CE9C-48B4-8A23-AB32A7EF2EEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CAB96765-CE9C-48B4-8A23-AB32A7EF2EEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CAB96765-CE9C-48B4-8A23-AB32A7EF2EEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E3A7754-1919-402A-8945-C7D107A74116}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E3A7754-1919-402A-8945-C7D107A74116}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E3A7754-1919-402A-8945-C7D107A74116}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E3A7754-1919-402A-8945-C7D107A74116}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

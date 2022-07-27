@@ -2,7 +2,7 @@
 
 namespace FolkLibrary.Dtos;
 
-public class ItemReadDto
+public abstract class ItemReadDto
 {
     [JsonPropertyOrder(-4)]
     public Guid Id { get; set; }

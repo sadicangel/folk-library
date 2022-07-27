@@ -1,11 +1,8 @@
 ﻿namespace FolkLibrary.Dtos;
 
-public sealed class TrackReadDto : ItemReadDto
+public sealed class TrackReadDto : TrackReadDtoBase
 {
-    public int Number { get; set; }
-    public TimeSpan Duration { get; set; }
-    public int? Year { get; set; }
-    public ItemReadDto? Album { get; set; } = null!;
-    public HashSet<ItemReadDto> Artists { get; set; } = null!;
-    public HashSet<ItemReadDto> Genres { get; set; } = null!;
+    public AlbumReadDtoBase Album { get; set; } = null!;
+    public HashSet<ArtistReadDtoBase> Artists { get; set; } = null!;
+    public HashSet<GenreReadDtoBase> Genres { get; set; } = null!;
 }

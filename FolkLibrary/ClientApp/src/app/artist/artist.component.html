@@ -1,0 +1,22 @@
+<mat-accordion *ngIf="!!artist" class="artist-headers-align" multi>
+    <mat-expansion-panel>
+        <mat-expansion-panel-header>
+            <mat-panel-title>
+                {{ artist.name }}
+            </mat-panel-title>
+            <mat-panel-description>
+                {{ getLocation() }}
+                <p>{{ artist.year }}</p>
+            </mat-panel-description>
+        </mat-expansion-panel-header>
+        <table class="table">
+            <tbody>
+                <tr *ngFor="let album of artist.albums">
+                    <td>{{ album.name }}</td>
+                    <td>{{ album.year }}</td>
+                    <td>{{ album.duration.substring(0, album.duration.indexOf('.')) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </mat-expansion-panel>
+</mat-accordion>

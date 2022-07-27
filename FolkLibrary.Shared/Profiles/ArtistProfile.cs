@@ -9,6 +9,7 @@ public sealed class ArtistProfile : Profile
     public ArtistProfile()
     {
         CreateMap<Artist, ItemReadDto>();
+        CreateMap<Artist, ArtistReadDtoBase>();
         CreateMap<Artist, ArtistReadDto>();
     }
 }

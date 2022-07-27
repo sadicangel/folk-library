@@ -1,6 +1,6 @@
 ﻿namespace FolkLibrary.Dtos;
 
-public sealed class GenreReadDto : ItemReadDto
+public sealed class GenreReadDto : GenreReadDtoBase
 {
-    public List<ItemReadDto> Albums { get; set; } = null!;
+    public List<AlbumReadDtoBase> Albums { get; set; } = null!;
 }

@@ -1,10 +1,10 @@
 ﻿using FolkLibrary.Models;
 using MediatR;
 using Ardalis.Specification;
-using FolkLibrary.Services;
 using System.Net;
 using FolkLibrary.Dtos;
 using AutoMapper;
+using FolkLibrary.Interfaces;
 
 namespace FolkLibrary.Commands.Tracks;
 

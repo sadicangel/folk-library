@@ -1,19 +1,13 @@
 using FolkLibrary;
-using FolkLibrary.Commands.Albums;
-using FolkLibrary.Commands.Artists;
 using FolkLibrary.Commands.GraphQL;
-using FolkLibrary.Commands.Tracks;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddFolkLibraryContext(opts => opts.UseSqlite("DataSource=db.sqlite"));
-
+builder.Services.AddFolkLibraryContext("Host=localhost;Username=postgres;Password=postgres;Database=folklibrary;");
 builder.Services.AddAutoMapper(typeof(Program), typeof(IAssemblyMarker));
 builder.Services.AddMediatR(typeof(Program), typeof(IAssemblyMarker));
-
 builder.Services.AddGraphQLServer()
     .AddQueryType<Query>()
     .AddSorting();

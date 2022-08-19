@@ -4,6 +4,7 @@ using FolkLibrary.Commands.Albums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using FolkLibrary.Commands;
+using FolkLibrary.Specifications;
 
 namespace FolkLibrary.Controllers;
 [ApiController]
@@ -19,9 +20,9 @@ public sealed class AlbumController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> Get([FromQuery] Guid? artistId, [FromQuery] Guid? genreId)
+    public async Task<IActionResult> Get([FromQuery] Guid? artistId)
     {
-        var specification = new GenericSpecification<Album>(builder => builder.GetAll(artistId, genreId));
+        var specification = new GenericSpecification<Album>(builder => builder.GetAll(artistId));
         var response = await _mediator.Send(new AlbumGetManyRequest { Specification = specification });
         return Ok(response);
     }

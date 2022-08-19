@@ -1,8 +1,8 @@
 ﻿using FolkLibrary.Models;
 using MediatR;
-using FolkLibrary.Services;
 using FolkLibrary.Dtos;
 using AutoMapper;
+using FolkLibrary.Interfaces;
 
 namespace FolkLibrary.Commands.Artists;
 

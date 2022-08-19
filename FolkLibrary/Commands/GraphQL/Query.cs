@@ -1,5 +1,6 @@
-﻿using FolkLibrary.Models;
-using FolkLibrary.Services;
+﻿using FolkLibrary.Interfaces;
+using FolkLibrary.Models;
+using FolkLibrary.Specifications;
 
 namespace FolkLibrary.Commands.GraphQL;
 
@@ -21,9 +22,9 @@ public sealed class Query
     }
 
 
-    public async ValueTask<IList<Album>> GetAlbums([Service] IRepository<Album> albumRepository, Guid? albumId = null, Guid? genreId = null)
+    public async ValueTask<IList<Album>> GetAlbums([Service] IRepository<Album> albumRepository, Guid? albumId = null)
     {
-        return await albumRepository.GetAllAsync(new GenericSpecification<Album>(builder => builder.GetAll(albumId, genreId)));
+        return await albumRepository.GetAllAsync(new GenericSpecification<Album>(builder => builder.GetAll(albumId)));
     }
 
     public async ValueTask<Album?> GetAlbumById([Service] IRepository<Album> albumRepository, Guid id)
@@ -37,25 +38,9 @@ public sealed class Query
     }
 
 
-    public async ValueTask<IList<Genre>> GetGenres([Service] IRepository<Genre> genreRepository)
+    public async ValueTask<IList<Track>> GetTracks([Service] IRepository<Track> trackRepository, Guid? albumId = null, Guid? artistId = null)
     {
-        return await genreRepository.GetAllAsync(new GenericSpecification<Genre>(builder => builder.Configure()));
-    }
-
-    public async ValueTask<Genre?> GetGenreById([Service] IRepository<Genre> genreRepository, Guid id)
-    {
-        return await genreRepository.GetAsync(new GenericSingleResultSpecification<Genre>(id, builder => builder.Configure()));
-    }
-
-    public async ValueTask<IList<Genre>> GetGenreByName([Service] IRepository<Genre> genreRepository, string name)
-    {
-        return await genreRepository.GetAllAsync(new GenericSpecification<Genre>(builder => builder.Configure().GetByName(name)));
-    }
-
-
-    public async ValueTask<IList<Track>> GetTracks([Service] IRepository<Track> trackRepository, Guid? albumId = null, Guid? artistId = null, Guid? genreId = null)
-    {
-        return await trackRepository.GetAllAsync(new GenericSpecification<Track>(builder => builder.GetAll(albumId, artistId, genreId)));
+        return await trackRepository.GetAllAsync(new GenericSpecification<Track>(builder => builder.GetAll(albumId, artistId)));
     }
 
     public async ValueTask<Track?> GetTrackById([Service] IRepository<Track> trackRepository, Guid id)

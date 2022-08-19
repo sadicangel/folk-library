@@ -1,9 +1,10 @@
 ﻿using FolkLibrary.Dtos;
+using FolkLibrary.Interfaces;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Net.Http.Json;
 
 namespace FolkLibrary.Services;
-public sealed class FolkLibraryClient
+public sealed class FolkLibraryClient : IFolkLibraryClient
 {
     private readonly HttpClient _httpClient;
 

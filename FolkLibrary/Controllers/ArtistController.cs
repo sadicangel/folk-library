@@ -2,6 +2,7 @@
 using FolkLibrary.Commands;
 using FolkLibrary.Commands.Artists;
 using FolkLibrary.Models;
+using FolkLibrary.Specifications;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

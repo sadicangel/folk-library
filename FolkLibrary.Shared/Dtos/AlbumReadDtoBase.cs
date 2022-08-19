@@ -2,7 +2,7 @@
 
 public class AlbumReadDtoBase : ItemReadDto
 {
-    public int? Year { get; set; }
     public int TrackCount { get; set; }
     public TimeSpan Duration { get; set; }
+    public bool IsIncomplete { get; set; }
 }

@@ -6,8 +6,6 @@ import { Item } from "./item";
 export interface Track extends Item {
   number: number;
   duration: string;
-  year?: number;
   album: Album[];
   artists: Artist[];
-  genres: Genre[];
 }

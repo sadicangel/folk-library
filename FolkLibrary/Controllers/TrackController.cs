@@ -2,6 +2,7 @@
 using FolkLibrary.Commands;
 using FolkLibrary.Commands.Tracks;
 using FolkLibrary.Models;
+using FolkLibrary.Specifications;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,9 +21,9 @@ public class TrackController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> Get([FromQuery] Guid? albumId, [FromQuery] Guid? artistId, [FromQuery] Guid? genreId)
+    public async Task<IActionResult> Get([FromQuery] Guid? albumId, [FromQuery] Guid? artistId)
     {
-        var specification = new GenericSpecification<Track>(builder => builder.GetAll(albumId, artistId, genreId));
+        var specification = new GenericSpecification<Track>(builder => builder.GetAll(albumId, artistId));
         var response = await _mediator.Send(new TrackGetManyRequest { Specification = specification });
         return Ok(response);
     }

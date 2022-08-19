@@ -3,7 +3,7 @@ import { Item } from "./item";
 import { Track } from "./track";
 
 export interface Artist extends Item {
-  year?: number;
+  shortName: string;
   country: string;
   district?: string;
   municipality?: string;

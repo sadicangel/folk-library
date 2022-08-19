@@ -1,2 +1,30 @@
-<p class="text-center">Artists: {{artists.length}}</p>
-<app-artist class="artist" *ngFor="let artist of artists" [artist]="artist"></app-artist>
+<p *ngIf="artists" class="text-center">Artists: {{artists.data.length}}</p>
+<!-- <app-artist class="artist" *ngFor="let artist of artists" [artist]="artist"></app-artist> -->
+<div class="container mh-50">
+  <div class="row">
+    <div class="col-8">
+        <mat-table [dataSource]="artists" matSort (matSortChange)="sortOrder()" class="table table-striped mat-elevation-z8">
+            <ng-container matColumnDef="name">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Name (short) </mat-header-cell>
+                <mat-cell *matCellDef="let artist"> {{artist.shortName}} </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="location">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Location </mat-header-cell>
+                <mat-cell *matCellDef="let artist"> {{getLocation(artist)}} </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="albums">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Albums </mat-header-cell>
+                <mat-cell *matCellDef="let artist"> {{artist.albums.length}} </mat-cell>
+            </ng-container>
+            <ng-container matColumnDef="year">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Year </mat-header-cell>
+                <mat-cell *matCellDef="let artist"> {{artist.year}}{{artist.isYearUncertain ? '&#x3F;' : ''}} </mat-cell>
+            </ng-container>
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;" (click)="selection.toggle(row)" [className]="selection.isSelected(row) ? 'selected' : ''"></mat-row>
+        </mat-table>
+    </div>
+    <div class="col-4">
+        <app-artist [artist]="selection.selected[0]"></app-artist>
+    </div>    
+</div>

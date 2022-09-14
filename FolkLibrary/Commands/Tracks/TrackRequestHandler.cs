@@ -24,13 +24,13 @@ public sealed class TrackRequestHandler :
 
     public async Task<TrackReadDto> Handle(TrackGetSingleRequest request, CancellationToken cancellationToken)
     {
-        var response = await _trackRepository.GetAsync(request.Specification, cancellationToken);
+        var response = await _trackRepository.SingleOrDefaultAsync(request.Specification, cancellationToken);
         return _mapper.Map<TrackReadDto>(response);
     }
 
     public async Task<List<TrackReadDto>> Handle(TrackGetManyRequest request, CancellationToken cancellationToken)
     {
-        var response = await _trackRepository.GetAllAsync(request.Specification, cancellationToken);
+        var response = await _trackRepository.ListAsync(request.Specification, cancellationToken);
         return _mapper.Map<List<TrackReadDto>>(response);
     }
 }

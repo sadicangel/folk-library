@@ -22,13 +22,13 @@ public sealed class AlbumRequestHandler :
 
     public async Task<AlbumReadDto> Handle(AlbumGetSingleRequest request, CancellationToken cancellationToken)
     {
-        var response = await _albumRepository.GetAsync(request.Specification, cancellationToken);
+        var response = await _albumRepository.SingleOrDefaultAsync(request.Specification, cancellationToken);
         return _mapper.Map<AlbumReadDto>(response);
     }
 
     public async Task<List<AlbumReadDto>> Handle(AlbumGetManyRequest request, CancellationToken cancellationToken)
     {
-        var response = await _albumRepository.GetAllAsync(request.Specification, cancellationToken);
+        var response = await _albumRepository.ListAsync(request.Specification, cancellationToken);
         return _mapper.Map<List<AlbumReadDto>>(response);
     }
 }

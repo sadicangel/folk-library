@@ -22,13 +22,13 @@ public sealed class ArtistRequestHandler :
 
     public async Task<ArtistReadDto> Handle(ArtistGetSingleRequest request, CancellationToken cancellationToken)
     {
-        var response = await _artistRepository.GetAsync(request.Specification, cancellationToken);
+        var response = await _artistRepository.SingleOrDefaultAsync(request.Specification, cancellationToken);
         return _mapper.Map<ArtistReadDto>(response);
     }
 
     public async Task<List<ArtistReadDto>> Handle(ArtistGetManyRequest request, CancellationToken cancellationToken)
     {
-        var response = await _artistRepository.GetAllAsync(request.Specification, cancellationToken);
+        var response = await _artistRepository.ListAsync(request.Specification, cancellationToken);
         return _mapper.Map<List<ArtistReadDto>>(response);
     }
 }

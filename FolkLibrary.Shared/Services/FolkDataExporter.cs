@@ -55,24 +55,23 @@ internal sealed class FolkDataExporter
 
         var albumSheet = package.Workbook.Worksheets.Add(nameof(Album).Pluralize());
         row = 1; col = 1;
-        SetValue(albumSheet.Cells[row, col++], nameof(Artist), "header");
         foreach (var property in AlbumGetters.Keys)
             SetValue(albumSheet.Cells[row, col++], property.Name.Humanize(), "header");
         row = 2;
         foreach(var artist in artists)
         {
-            SetValue(albumSheet.Cells[row, 1], artist.Name, "row-header");
-            albumSheet.Cells[row, 1, row, AlbumGetters.Count + 1].Merge = true;
+            SetValue(albumSheet.Cells[row, 1], $"{artist.ShortName} ({artist.Name})", "row-header");
+            albumSheet.Cells[row, 1, row, AlbumGetters.Count].Merge = true;
             row++;
             foreach (var album in artist.Albums.OrderBy(e => e.Year).ThenBy(e => e.Name, NaturalSortComparer.Ordinal))
             {
-                col = 2;
+                col = 1;
                 foreach (var property in AlbumGetters.Keys)
                     SetValue(albumSheet.Cells[row, col++], GetValue(property, AlbumGetters[property], album));
                 row++;
             }
         }
-        FormatColumns(albumSheet, AlbumGetters.Keys, firstRow: 2, firstColumn: 2);
+        FormatColumns(albumSheet, AlbumGetters.Keys, firstRow: 2, firstColumn: 1);
         albumSheet.Cells[albumSheet.Dimension.Address].AutoFitColumns();
 
         package.Save();
@@ -93,15 +92,14 @@ internal sealed class FolkDataExporter
                     sheet.Column(col).Style.Numberformat.Format = "0";
                     break;
                 case Type when type == typeof(bool):
-                    sheet.Column(col).Style.Font.Italic = true;
                     var value = property.Name[2..].Humanize();
                     for (int i = firstRow; i <= sheet.Dimension.Rows; ++i)
                     {
                         var cell = sheet.Cells[i, col];
                         var current = cell.GetValue<bool?>();
                         if (current is true)
-                            cell.Value = value;
-                        else if(current is false)
+                            SetValue(cell, value, "bool-cell");
+                        else if (current is false)
                             cell.Value = null;
                     }
                     break;
@@ -121,6 +119,9 @@ internal sealed class FolkDataExporter
         rowHeader.Font.Bold = true;
         rowHeader.Fill.PatternType = ExcelFillStyle.Solid;
         rowHeader.Fill.BackgroundColor.SetColor(OfficeOpenXml.Drawing.eThemeSchemeColor.Background2);
+
+        var boolCell = workbook.Styles.CreateNamedStyle("bool-cell").Style;
+        boolCell.Font.Italic = true;
     }
 
     private static void SetValue(ExcelRange cell, object? value, string? styleName = null)

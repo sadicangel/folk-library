@@ -1,6 +1,4 @@
-﻿using Ardalis.Specification;
-using FolkLibrary.Commands;
-using FolkLibrary.Commands.Artists;
+﻿using FolkLibrary.Commands.Artists;
 using FolkLibrary.Models;
 using FolkLibrary.Specifications;
 using MediatR;

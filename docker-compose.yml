@@ -1,0 +1,25 @@
+version: '3.4'
+
+services:
+  folklibrary:
+    container_name: folklibrary
+    image: ${DOCKER_REGISTRY-}folklibrary
+    build:
+      context: .
+      dockerfile: FolkLibrary/Dockerfile
+    volumes:
+    - /d/music/folk:/app/data
+  database:
+    container_name: database
+    image: postgres
+    #ports:
+    #  - 55432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: folklibrary
+  database.admin:
+    container_name: database_admin
+    image: dbeaver/cloudbeaver
+    ports:
+    - 8978:8978

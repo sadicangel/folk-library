@@ -23,8 +23,7 @@ public static class MauiProgram
 
     private static void ConfigureServices(IServiceCollection services)
     {
-        string connectionString = "Host=10.0.2.2;Username=postgres;Password=postgres;Database=folklibrary;";
-        services.AddFolkLibraryContext(connectionString);
+        services.AddFolkHttpClient(opts => opts.BaseAddress = new("https://localhost:52947"));
         services.AddSingleton<INavigationService, NavigationService>();
     }
 

@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace FolkLibrary.Models;
 

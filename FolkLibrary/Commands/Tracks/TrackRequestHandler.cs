@@ -1,7 +1,5 @@
 ﻿using FolkLibrary.Models;
 using MediatR;
-using Ardalis.Specification;
-using System.Net;
 using FolkLibrary.Dtos;
 using AutoMapper;
 using FolkLibrary.Interfaces;

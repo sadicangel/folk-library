@@ -1,11 +1,18 @@
 using FolkLibrary;
 using FolkLibrary.Commands.GraphQL;
 using MediatR;
+using Microsoft.Extensions.FileProviders;
+using Serilog;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddFolkLibraryContext("Host=localhost;Username=postgres;Password=postgres;Database=folklibrary;");
+builder.Host.UseSerilog((host, opts) => opts.WriteTo.Console().MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Warning));
+
+builder.Services.AddSingleton<IFileProvider>(services => services.GetRequiredService<IWebHostEnvironment>().ContentRootFileProvider);
+builder.Services.AddFolkDataLoader();
+builder.Services.AddFolkDataExporter();
+builder.Services.AddFolkDbContext("Host=database;Username=postgres;Password=postgres;Database=folklibrary;");
 builder.Services.AddAutoMapper(typeof(Program), typeof(IAssemblyMarker));
 builder.Services.AddMediatR(typeof(Program), typeof(IAssemblyMarker));
 builder.Services.AddGraphQLServer()
@@ -14,22 +21,17 @@ builder.Services.AddGraphQLServer()
 builder.Services.AddControllers()
     .AddJsonOptions(opts => opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault);
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(opts => opts.SupportNonNullableReferenceTypes());
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    // The default HSTS value is 30 days. You may want to
-    // change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
@@ -37,6 +39,7 @@ app.UseAuthorization();
 app.MapGraphQL();
 app.MapControllers();
 
-app.MapFallbackToFile("index.html"); ;
+app.LoadDatabaseData(overwrite: false);
+app.ExportDatabaseData("artists.xlxs");
 
 app.Run();

@@ -19,6 +19,8 @@ public sealed class Artist : Item, IEquatable<Artist>, IComparable<Artist>
 
     public bool IsAbroad { get; set; }
 
+    public int AlbumCount { get; set; }
+
     public List<Album> Albums { get; set; } = new();
 
     public List<Track> Tracks { get; set; } = new();

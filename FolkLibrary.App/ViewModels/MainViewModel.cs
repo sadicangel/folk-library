@@ -1,14 +1,14 @@
 ﻿using Ardalis.Specification;
-using FolkLibrary.Specifications;
+using FolkLibrary.Dtos;
 
 namespace FolkLibrary.App.ViewModels;
 public partial class MainViewModel : BaseViewModel
 {
-    private readonly IRepository<Artist> _artistRepository;
-    private readonly List<Artist> _artists = new();
+    private readonly IFolkHttpClient _folkHttpClient;
+    private readonly List<ArtistReadDto> _artists = new();
 
     [ObservableProperty]
-    private ObservableCollection<Artist> _artistsView = new();
+    private ObservableCollection<ArtistReadDto> _artistsView = new();
 
     [ObservableProperty]
     private bool _showLocal = true;
@@ -25,18 +25,19 @@ public partial class MainViewModel : BaseViewModel
     [ObservableProperty]
     private string? _searchText;
 
-    public MainViewModel(INavigationService navigationService, IRepository<Artist> artistRepository)
+    public MainViewModel(INavigationService navigationService, IFolkHttpClient folkHttpClient)
         : base(navigationService)
     {
         Title = "Artists";
-        _artistRepository = artistRepository;
+        _folkHttpClient = folkHttpClient;
     }
 
     [RelayCommand]
     private async Task OnLoadedAsync()
     {
         _artists.Clear();
-        _artists.AddRange(await _artistRepository.GetAllAsync(new GenericSpecification<Artist>(builder => builder.OrderBy(a => a.Year))));
+        _artists.AddRange(await _folkHttpClient.GetArtistsAsync());
+        _artists.Sort((a, b) => a.Year!.Value.CompareTo(b.Year!.Value));
         ArtistsView = new(_artists);
     }
 

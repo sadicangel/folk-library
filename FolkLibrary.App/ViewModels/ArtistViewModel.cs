@@ -1,26 +1,28 @@
-﻿namespace FolkLibrary.App.ViewModels;
+﻿using FolkLibrary.Dtos;
+
+namespace FolkLibrary.App.ViewModels;
 
 [QueryProperty(nameof(ArtistId), nameof(ArtistId))]
 public partial class ArtistViewModel : BaseViewModel
 {
-    private readonly IRepository<Artist> _artistRepository;
+    private readonly IFolkHttpClient _folkHttpClient;
 
     [ObservableProperty]
     private Guid _artistId;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Location))]
-    private Artist? _artist;
+    private ArtistReadDto? _artist;
 
     public string? Location { get => String.Join(" - ", EnumerateLocations(_artist)); }
 
-    public ArtistViewModel(INavigationService navigationService, IRepository<Artist> artistRepository)
+    public ArtistViewModel(INavigationService navigationService, IFolkHttpClient folkHttpClient)
         : base(navigationService)
     {
-        _artistRepository = artistRepository;
+        _folkHttpClient = folkHttpClient;
     }
 
-    private static IEnumerable<string> EnumerateLocations(Artist? artist)
+    private static IEnumerable<string> EnumerateLocations(ArtistReadDto? artist)
     {
         if (artist is not null)
         {
@@ -44,7 +46,7 @@ public partial class ArtistViewModel : BaseViewModel
             return;
         }
 
-        Artist = await _artistRepository.GetAsync(new GenericSingleResultSpecification<Artist>(_artistId, builder => builder.Configure()));
+        Artist = await _folkHttpClient.GetArtistAsync(_artistId);
 
         if (Artist is null)
         {

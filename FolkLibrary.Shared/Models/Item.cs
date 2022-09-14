@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
 
 namespace FolkLibrary.Models;
 
@@ -8,7 +7,7 @@ public abstract class Item : IEquatable<Item>, IComparable<Item>
     [Column(Order = 0)]
     public Guid Id { get; init; }
 
-    [ Column(Order = 1)]
+    [Column(Order = 1)]
     public string Name { get; set; } = null!;
 
     [NotMapped]

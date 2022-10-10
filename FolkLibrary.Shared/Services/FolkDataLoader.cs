@@ -1,23 +1,32 @@
 ﻿using FolkLibrary.Exceptions;
+using FolkLibrary.Interfaces;
+using FolkLibrary.Events;
 using FolkLibrary.Models;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using NAudio.MediaFoundation;
+using AutoMapper;
+using FolkLibrary.Dtos;
 
 namespace FolkLibrary.Services;
 
 internal sealed class FolkDataLoader
 {
+    private static readonly JsonSerializerOptions? JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly ILogger<FolkDataLoader> _logger;
+    private readonly IMapper _mapper;
     private readonly IFileProvider _fileProvider;
     private readonly FolkDbContext _dbContext;
-    private static readonly JsonSerializerOptions? JsonOptions = new(JsonSerializerDefaults.Web);
+    private readonly IEventPublisher _eventPublisher;
 
-    public FolkDataLoader(ILogger<FolkDataLoader> logger, IFileProvider fileProvider, FolkDbContext dbContext)
+    public FolkDataLoader(ILogger<FolkDataLoader> logger, IMapper mapper, IFileProvider fileProvider, FolkDbContext dbContext, IEventPublisher eventPublisher)
     {
         _logger = logger;
+        _mapper = mapper;
         _fileProvider = fileProvider;
         _dbContext = dbContext;
+        _eventPublisher = eventPublisher;
     }
 
     public void LoadData(bool overwrite = false, string folderName = "data")
@@ -55,17 +64,19 @@ internal sealed class FolkDataLoader
     private void LoadArtist(string artistFolder)
     {
         Func<string, string[], List<Artist>> findArtists = null!;
-        var isSingleArtist = !artistFolder.EndsWith("Vários Artistas");
-        if (isSingleArtist)
+        var isNewArtist = !artistFolder.EndsWith("Vários Artistas");
+        var newArtist = default(Artist);
+        var variousArtists = default(HashSet<Artist>);
+        if (isNewArtist)
         {
-            var artist = ReadArtist(artistFolder);
-            _logger.LogInformation("{artistName}", artist.Name);
-            _dbContext.Artists.Add(artist);
-            var list = new List<Artist> { artist };
+            newArtist = ReadArtist(artistFolder);
+            _logger.LogInformation("{artistName}", newArtist.Name);
+            _dbContext.Artists.Add(newArtist);
+            var list = new List<Artist> { newArtist };
             findArtists = (trackFile, performers) =>
             {
                 if (performers.Length != 1 || list[0].Name != performers[0])
-                    throw new FolkDataLoadException($"Artist '{artist.Name}' does not match artist for track {trackFile}");
+                    throw new FolkDataLoadException($"Artist '{newArtist.Name}' does not match artist for track {trackFile}");
                 return list;
             };
         }
@@ -85,11 +96,27 @@ internal sealed class FolkDataLoader
         {
             var album = ReadAlbum(albumFolder);
             _logger.LogInformation("\t - {albumName}", album.Name);
-            LoadAlbumTracks(album, Directory.EnumerateFiles(albumFolder), findArtists);
+            variousArtists = LoadAlbumTracks(album, Directory.EnumerateFiles(albumFolder), findArtists);
+
+            foreach (var artist in variousArtists)
+            {
+                artist.Albums.Add(album);
+                artist.AlbumCount++;
+            }
+        }
+
+        if (isNewArtist)
+        {
+            _eventPublisher.Publish(new ArtistCreatedEvent { Body = _mapper.Map<ArtistDto>(newArtist!) });
+        }
+        else
+        {
+            foreach (var artist in variousArtists!)
+                _eventPublisher.Publish(new ArtistUpdatedEvent { Body = _mapper.Map<ArtistDto>(artist!) });
         }
     }
 
-    private static void LoadAlbumTracks(Album album, IEnumerable<string> trackFiles, Func<string, string[], List<Artist>> findArtists)
+    private static HashSet<Artist> LoadAlbumTracks(Album album, IEnumerable<string> trackFiles, Func<string, string[], List<Artist>> findArtists)
     {
         var albumArtists = new HashSet<Artist>();
         foreach (var trackFile in trackFiles)
@@ -111,11 +138,7 @@ internal sealed class FolkDataLoader
 
         album.IsIncomplete = album.TrackCount != album.Tracks.Max(t => t.Number);
 
-        foreach (var albumArtist in albumArtists)
-        {
-            albumArtist.Albums.Add(album);
-            albumArtist.AlbumCount++;
-        }
+        return albumArtists;
     }
 
     private static Artist ReadArtist(string artistFolder)

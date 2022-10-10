@@ -1,6 +1,5 @@
-using FolkLibrary;
-using FolkLibrary.Commands.GraphQL;
-using MediatR;
+using FolkLibrary.Filters;
+using FolkLibrary.Queries.GraphQL;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 using System.Text.Json.Serialization;
@@ -10,15 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((host, opts) => opts.WriteTo.Console().MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Warning));
 
 builder.Services.AddSingleton<IFileProvider>(services => services.GetRequiredService<IWebHostEnvironment>().ContentRootFileProvider);
-builder.Services.AddFolkDataLoader();
-builder.Services.AddFolkDataExporter();
-builder.Services.AddFolkDbContext("Host=database;Username=postgres;Password=postgres;Database=folklibrary;");
-builder.Services.AddAutoMapper(typeof(Program), typeof(IAssemblyMarker));
-builder.Services.AddMediatR(typeof(Program), typeof(IAssemblyMarker));
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddGraphQLServer()
     .AddQueryType<Query>()
     .AddSorting();
-builder.Services.AddControllers()
+builder.Services.AddControllers(opts => opts.Filters.Add<HttpExceptionFilter>())
     .AddJsonOptions(opts => opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opts => opts.SupportNonNullableReferenceTypes());
@@ -39,7 +35,7 @@ app.UseAuthorization();
 app.MapGraphQL();
 app.MapControllers();
 
-app.LoadDatabaseData(overwrite: false);
-app.ExportDatabaseData("artists.xlxs");
+app.LoadDatabaseData(overwrite: true);
+//app.ExportDatabaseData("artists.xlxs");
 
 app.Run();

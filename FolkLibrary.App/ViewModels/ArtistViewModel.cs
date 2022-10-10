@@ -12,7 +12,7 @@ public partial class ArtistViewModel : BaseViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Location))]
-    private ArtistReadDto? _artist;
+    private ArtistDto? _artist;
 
     public string? Location { get => String.Join(" - ", EnumerateLocations(_artist)); }
 
@@ -22,7 +22,7 @@ public partial class ArtistViewModel : BaseViewModel
         _folkHttpClient = folkHttpClient;
     }
 
-    private static IEnumerable<string> EnumerateLocations(ArtistReadDto? artist)
+    private static IEnumerable<string> EnumerateLocations(ArtistDto? artist)
     {
         if (artist is not null)
         {
@@ -46,7 +46,7 @@ public partial class ArtistViewModel : BaseViewModel
             return;
         }
 
-        Artist = await _folkHttpClient.GetArtistAsync(_artistId);
+        Artist = await _folkHttpClient.GetArtistByIdAsync(_artistId);
 
         if (Artist is null)
         {

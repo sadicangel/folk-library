@@ -1,11 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using FolkLibrary.Interfaces;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FolkLibrary.Models;
 
-public abstract class Item : IEquatable<Item>, IComparable<Item>
+public abstract class Item : IDomainObject, IEquatable<Item>, IComparable<Item>
 {
     [Column(Order = 0)]
-    public Guid Id { get; init; }
+    public Guid Id { get; init; } = Guid.NewGuid();
 
     [Column(Order = 1)]
     public string Name { get; set; } = null!;

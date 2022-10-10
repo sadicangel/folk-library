@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "FolkLibrary.Functions": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "httpPort": 31522,
+      "useSSL": false
+    }
+  }
+}

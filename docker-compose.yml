@@ -9,8 +9,23 @@ services:
       dockerfile: FolkLibrary/Dockerfile
     volumes:
     - /d/music/folk:/app/data
-  database:
-    container_name: database
+  folklibrary.functions:
+    container_name: folklibrary_functions
+    image: ${DOCKER_REGISTRY-}folklibraryfunctions
+    build:
+      context: .
+      dockerfile: FolkLibrary.Functions/FolkLibrary.Functions/Dockerfile
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports:
+    - 15672:15672
+    volumes:
+    - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+    environment:
+    - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"
+  postgres:
+    container_name: postgres
     image: postgres
     #ports:
     #  - 55432:5432
@@ -18,8 +33,19 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: folklibrary
-  database.admin:
-    container_name: database_admin
+  postgres.admin:
+    container_name: postgres_admin
     image: dbeaver/cloudbeaver
     ports:
     - 8978:8978
+  mongodb:
+    container_name: mongodb
+    image: mongo
+  mongodb.admin:
+    container_name: mongodb_admin
+    image: mongo-express
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb
+

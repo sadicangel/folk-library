@@ -2,29 +2,26 @@
 using Bogus;
 using FolkLibrary.Interfaces;
 using FolkLibrary.Models;
-using HotChocolate.Language;
 using Humanizer;
 using MongoDB.Driver;
-using NAudio.MediaFoundation;
-using OfficeOpenXml.ConditionalFormatting;
 using System.Data;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing.Printing;
-using System.Linq.Expressions;
-using System.Security.Claims;
-using System.Text;
-using System.Text.Json.Nodes;
 
 namespace FolkLibrary.Services;
 internal sealed class MongoRepository<T> : IMongoRepository<T> where T : class, IDataTransterObject
 {
+    private const string CountName = "count";
+    private const string DataName = "data";
+    private const int PageSize = 20;
+
     private readonly IMongoCollection<T> _collection;
+    private readonly IHashids _hashService;
 
     public string CollectionName { get; } = typeof(T).Name[..^3].Pluralize().Camelize();
 
     public MongoRepository(IMongoDatabase database)
     {
         _collection = database.GetCollection<T>(CollectionName);
+        _hashService = new Hashids(CollectionName, minHashLength: 16);
     }
 
     public async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
@@ -117,68 +114,51 @@ internal sealed class MongoRepository<T> : IMongoRepository<T> where T : class, 
 
     private string EncodePageIndex(int pageIndex)
     {
-        var id = JsonNode.Parse("{}")!;
-        id["name"] = CollectionName;
-        id["index"] = pageIndex;
-        var json = id.ToJsonString();
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+        return _hashService.Encode(pageIndex);
     }
 
     private bool TryDecodePageIndex(string? token, out int pageIndex)
     {
         pageIndex = 0;
 
-        try
-        {
-            if (String.IsNullOrWhiteSpace(token))
-                return false;
-
-            var id = JsonNode.Parse(Convert.FromBase64String(token))!;
-
-            if (id["name"]?.GetValue<string>() != CollectionName)
-                return false;
-
-            if (id["index"]?.GetValue<int>() is not int index)
-                return false;
-
-            pageIndex = index;
-
-            return true;
-        }
-        catch
-        {
+        if (String.IsNullOrWhiteSpace(token))
             return false;
-        }
+
+        var ints = _hashService.Decode(token);
+
+        if (ints.Length != 1)
+            return false;
+
+        pageIndex = ints[0];
+
+        return true;
     }
 
     public async Task<Page<T>> ListPagedAsync(ISpecification<T> specification, string? continuationToken, CancellationToken cancellationToken = default)
     {
-        const string countName = "count";
-        const string dataName = "data";
-        const int pageSize = 10;
 
         TryDecodePageIndex(continuationToken, out int pageIndex);
 
-        var countFacet = AggregateFacet.Create(countName, PipelineDefinition<T, AggregateCountResult>.Create(
+        var countFacet = AggregateFacet.Create(CountName, PipelineDefinition<T, AggregateCountResult>.Create(
             new IPipelineStageDefinition[]
             {
                 PipelineStageDefinitionBuilder.Count<T>()
             }));
 
-        var dataFacet = AggregateFacet.Create(dataName, PipelineDefinition<T, T>.Create(
+        var dataFacet = AggregateFacet.Create(DataName, PipelineDefinition<T, T>.Create(
             new IPipelineStageDefinition[]
             {
                 PipelineStageDefinitionBuilder.Sort(specification.ToSortDefinition()),
-                PipelineStageDefinitionBuilder.Skip<T>(pageIndex * pageSize),
-                PipelineStageDefinitionBuilder.Limit<T>(pageSize),
+                PipelineStageDefinitionBuilder.Skip<T>(pageIndex * PageSize),
+                PipelineStageDefinitionBuilder.Limit<T>(PageSize),
             }));
 
         var aggregate = await _collection.Aggregate().Match(specification.ToFilterDefinition()).Facet(countFacet, dataFacet).FirstAsync(cancellationToken);
 
-        var count = aggregate.Facets.Single(f => f.Name == countName).Output<AggregateCountResult>();
-        var pageCount = (count.Count > 0 ? (int)count[0].Count : 0) / pageSize;
+        var count = aggregate.Facets.Single(f => f.Name == CountName).Output<AggregateCountResult>();
+        var pageCount = (count.Count > 0 ? (int)count[0].Count : 0) / PageSize;
 
-        var data = aggregate.Facets.Single(f => f.Name == dataName).Output<T>();
+        var data = aggregate.Facets.Single(f => f.Name == DataName).Output<T>();
 
         var nextPageIndex = pageIndex + 1;
 
@@ -191,33 +171,29 @@ internal sealed class MongoRepository<T> : IMongoRepository<T> where T : class, 
 
     public async Task<Page<TResult>> ListPagedAsync<TResult>(ISpecification<T, TResult> specification, string? continuationToken, CancellationToken cancellationToken = default)
     {
-        const string countName = "count";
-        const string dataName = "data";
-        const int pageSize = 10;
-
         TryDecodePageIndex(continuationToken, out int pageIndex);
 
-        var countFacet = AggregateFacet.Create(countName, PipelineDefinition<T, AggregateCountResult>.Create(
+        var countFacet = AggregateFacet.Create(CountName, PipelineDefinition<T, AggregateCountResult>.Create(
             new IPipelineStageDefinition[]
             {
                 PipelineStageDefinitionBuilder.Count<T>()
             }));
 
-        var dataFacet = AggregateFacet.Create(dataName, PipelineDefinition<T, TResult>.Create(
+        var dataFacet = AggregateFacet.Create(DataName, PipelineDefinition<T, TResult>.Create(
             new IPipelineStageDefinition[]
             {
                 PipelineStageDefinitionBuilder.Sort(specification.ToSortDefinition()),
-                PipelineStageDefinitionBuilder.Skip<T>(pageIndex * pageSize),
-                PipelineStageDefinitionBuilder.Limit<T>(pageSize),
+                PipelineStageDefinitionBuilder.Skip<T>(pageIndex * PageSize),
+                PipelineStageDefinitionBuilder.Limit<T>(PageSize),
                 PipelineStageDefinitionBuilder.Project(specification.Selector)
             }));
 
         var aggregate = await _collection.Aggregate().Match(specification.ToFilterDefinition()).Facet(countFacet, dataFacet).FirstAsync(cancellationToken);
 
-        var count = aggregate.Facets.Single(f => f.Name == countName).Output<AggregateCountResult>();
-        var pageCount = (count.Count > 0 ? (int)count[0].Count : 0) / pageSize;
+        var count = aggregate.Facets.Single(f => f.Name == CountName).Output<AggregateCountResult>();
+        var pageCount = (count.Count > 0 ? (int)count[0].Count : 0) / PageSize;
 
-        var data = aggregate.Facets.Single(f => f.Name == dataName).Output<TResult>();
+        var data = aggregate.Facets.Single(f => f.Name == DataName).Output<TResult>();
 
         var nextPageIndex = pageIndex + 1;
 

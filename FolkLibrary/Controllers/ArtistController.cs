@@ -18,13 +18,13 @@ public class ArtistController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllArtists(
+        [FromHeader(Name = "x-continuation-token")] string? continuationToken,
         [FromQuery] string? country,
         [FromQuery] string? district,
         [FromQuery] string? municipality,
         [FromQuery] string? parish,
         [FromQuery] int? afterYear,
-        [FromQuery] int? beforeYear,
-        [FromQuery] string? continuationToken)
+        [FromQuery] int? beforeYear)
     {
         var response = await _mediator.Send(new GetAllArtistsQuery
         {
@@ -40,7 +40,7 @@ public class ArtistController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("{albumId}")]
+    [HttpGet("{artistId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetArtistById([FromRoute] Guid artistId)

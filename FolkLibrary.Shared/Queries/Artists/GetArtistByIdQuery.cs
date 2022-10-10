@@ -1,9 +1,7 @@
-﻿using AutoMapper;
-using FluentValidation;
+﻿using FluentValidation;
 using FolkLibrary.Dtos;
 using FolkLibrary.Exceptions;
 using FolkLibrary.Interfaces;
-using FolkLibrary.Models;
 using MediatR;
 
 namespace FolkLibrary.Queries.Artists;

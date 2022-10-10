@@ -1,11 +1,9 @@
 ﻿using Ardalis.Specification;
-using AutoMapper;
 using FluentValidation;
 using FolkLibrary.Dtos;
 using FolkLibrary.Interfaces;
 using FolkLibrary.Models;
 using MediatR;
-using System.Diagnostics.Metrics;
 
 namespace FolkLibrary.Queries.Artists;
 

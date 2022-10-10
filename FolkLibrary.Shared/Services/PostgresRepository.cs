@@ -1,6 +1,5 @@
 ﻿using Ardalis.Specification.EntityFrameworkCore;
 using FolkLibrary.Interfaces;
-using FolkLibrary.Models;
 
 namespace FolkLibrary.Services;
 

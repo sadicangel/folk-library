@@ -1,9 +1,14 @@
-﻿using System.Diagnostics;
+﻿using FolkLibrary.Interfaces;
+using StronglyTypedIds;
+using System.Diagnostics;
 
 namespace FolkLibrary.Models;
 
+[StronglyTypedId(StronglyTypedIdBackingType.Guid, StronglyTypedIdConverter.SystemTextJson | StronglyTypedIdConverter.NewtonsoftJson | StronglyTypedIdConverter.EfCoreValueConverter)]
+public readonly partial struct TrackId : IId<TrackId> { }
+
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-public sealed class Track : Item, IEquatable<Track>, IComparable<Track>
+public sealed class Track : DomainObject<TrackId>, IEquatable<Track>, IComparable<Track>
 {
     public int Number { get; set; }
 

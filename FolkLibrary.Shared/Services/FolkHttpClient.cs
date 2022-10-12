@@ -1,8 +1,8 @@
 ﻿using FolkLibrary.Dtos;
 using FolkLibrary.Interfaces;
 using FolkLibrary.Models;
+using FolkLibrary.Queries.Artists;
 using System.Net.Http.Json;
-using System.Web;
 
 namespace FolkLibrary.Services;
 internal sealed class FolkHttpClient : IFolkHttpClient
@@ -14,28 +14,24 @@ internal sealed class FolkHttpClient : IFolkHttpClient
         _httpClient = httpClient;
     }
 
-    public async Task<Page<ArtistDto>> GetArtistsAsync(int pageIndex, string? country = null, string? district = null, string? municipality = null, string? parish = null)
+    public async Task<Page<ArtistDto>> GetAllArtistsAsync(GetAllArtistsQueryParams? queryParams = null, string? continuationToken = null)
     {
-        var queryParams = HttpUtility.ParseQueryString($"{nameof(pageIndex)}={pageIndex}");
-        if (country is not null)
-            queryParams[nameof(country)] = country;
-        if (district is not null)
-            queryParams[nameof(district)] = district;
-        if (municipality is not null)
-            queryParams[nameof(municipality)] = municipality;
-        if (parish is not null)
-            queryParams[nameof(parish)] = parish;
-
-
-        var uri = $"api/artist{queryParams.ToString()}";
-        var response = await _httpClient.GetFromJsonAsync<Page<ArtistDto>>(uri);
-        return response!;
+        var request = new HttpRequestMessage
+        {
+            Method = HttpMethod.Get,
+            RequestUri = new Uri($"api/artist{queryParams?.ToQueryParams()}"),
+            Headers = { { "X-Continuation-Token", continuationToken } }
+        };
+        var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        var result = await response.Content.ReadFromJsonAsync<Page<ArtistDto>>();
+        return result!;
     }
 
     public async Task<ArtistDto> GetArtistByIdAsync(Guid artistId)
     {
         var uri = $"api/artist/{artistId}";
-        var response = await _httpClient.GetFromJsonAsync<ArtistDto>(uri);
-        return response!;
+        var result = await _httpClient.GetFromJsonAsync<ArtistDto>(uri);
+        return result!;
     }
 }

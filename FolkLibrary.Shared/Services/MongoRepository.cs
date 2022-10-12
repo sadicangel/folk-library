@@ -7,7 +7,7 @@ using MongoDB.Driver;
 using System.Data;
 
 namespace FolkLibrary.Services;
-internal sealed class MongoRepository<T> : IMongoRepository<T> where T : class, IDataTransterObject
+internal sealed class MongoRepository<T> : IMongoRepository<T> where T : class, IDataTransferObject
 {
     private const string CountName = "count";
     private const string DataName = "data";

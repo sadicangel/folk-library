@@ -3,15 +3,11 @@ using FolkLibrary.Models;
 
 namespace FolkLibrary.Dtos;
 
-public sealed class ArtistDto : IDataTransterObject, IMapFrom<Artist>
+public sealed class ArtistDto : DataTransferObject<ArtistId>, IMapFrom<Artist>
 {
-    public Guid Id { get; set; }
-
     public string Name { get; set; } = null!;
 
     public string ShortName { get; set; } = null!;
-
-    public string Type { get; set; } = null!;
 
     public string? Description { get; set; }
 

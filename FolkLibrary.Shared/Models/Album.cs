@@ -1,9 +1,17 @@
-﻿using System.Diagnostics;
+﻿using FolkLibrary.Interfaces;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Attributes;
+using StronglyTypedIds;
+using System.Diagnostics;
 
 namespace FolkLibrary.Models;
 
+[BsonSerializer()]
+[StronglyTypedId(StronglyTypedIdBackingType.Guid, StronglyTypedIdConverter.SystemTextJson | StronglyTypedIdConverter.NewtonsoftJson | StronglyTypedIdConverter.EfCoreValueConverter)]
+public readonly partial struct AlbumId : IId<AlbumId> { }
+
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-public sealed class Album : Item, IEquatable<Album>, IComparable<Album>
+public sealed class Album : DomainObject<AlbumId>, IEquatable<Album>, IComparable<Album>
 {
     public int TrackCount { get; set; }
 

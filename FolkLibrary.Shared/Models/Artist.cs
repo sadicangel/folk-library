@@ -1,10 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using FolkLibrary.Interfaces;
+using StronglyTypedIds;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 
 namespace FolkLibrary.Models;
 
+[StronglyTypedId(StronglyTypedIdBackingType.Guid, StronglyTypedIdConverter.SystemTextJson | StronglyTypedIdConverter.NewtonsoftJson | StronglyTypedIdConverter.EfCoreValueConverter)]
+public readonly partial struct ArtistId : IId<ArtistId> { }
+
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-public sealed class Artist : Item, IEquatable<Artist>, IComparable<Artist>
+public sealed class Artist : DomainObject<ArtistId>, IEquatable<Artist>, IComparable<Artist>
 {
     public string ShortName { get; set; } = null!;
 

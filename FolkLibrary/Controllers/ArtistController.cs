@@ -1,4 +1,6 @@
-﻿using FolkLibrary.Queries.Artists;
+﻿using FolkLibrary.Commands.Artists;
+using FolkLibrary.Models;
+using FolkLibrary.Queries.Artists;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,35 +19,32 @@ public class ArtistController : ControllerBase
     
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllArtists(
-        [FromHeader(Name = "x-continuation-token")] string? continuationToken,
-        [FromQuery] string? country,
-        [FromQuery] string? district,
-        [FromQuery] string? municipality,
-        [FromQuery] string? parish,
-        [FromQuery] int? afterYear,
-        [FromQuery] int? beforeYear)
+    public async Task<IActionResult> GetAllArtists([FromHeader(Name = "X-Continuation-Token")] string? continuationToken, [FromQuery] GetAllArtistsQueryParams queryParams)
     {
         var response = await _mediator.Send(new GetAllArtistsQuery
         {
-            Country = country,
-            District = district,
-            Municipality = municipality,
-            Parish = parish,
-            AfterYear = afterYear,
-            BeforeYear = beforeYear,
+            QueryParams = queryParams,
             ContinuationToken = continuationToken,
-
         });
         return Ok(response);
     }
 
-    [HttpGet("{artistId}")]
+    [HttpGet("{artistId}", Name = nameof(GetArtistById))]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetArtistById([FromRoute] Guid artistId)
     {
-        var response = await _mediator.Send(new GetArtistByIdQuery { ArtistId = artistId });
+        var response = await _mediator.Send(new GetArtistByIdQuery { ArtistId = new ArtistId(artistId) });
         return Ok(response);
+    }
+
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateArtist([FromBody] CreateArtistCommand createArtistCommand)
+    {
+        var response = await _mediator.Send(createArtistCommand);
+
+        return CreatedAtAction(nameof(GetArtistById), new { artistId = response });
     }
 }

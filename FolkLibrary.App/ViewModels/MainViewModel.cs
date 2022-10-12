@@ -1,13 +1,14 @@
 ﻿using Ardalis.Specification;
+using FolkLibrary.Dtos;
 
 namespace FolkLibrary.App.ViewModels;
 public partial class MainViewModel : BaseViewModel
 {
     private readonly IFolkHttpClient _folkHttpClient;
-    private readonly List<ArtistReadDto> _artists = new();
+    private readonly List<ArtistDto> _artists = new();
 
     [ObservableProperty]
-    private ObservableCollection<ArtistReadDto> _artistsView = new();
+    private ObservableCollection<ArtistDto> _artistsView = new();
 
     [ObservableProperty]
     private bool _showLocal = true;
@@ -35,10 +36,23 @@ public partial class MainViewModel : BaseViewModel
     private async Task OnLoadedAsync()
     {
         _artists.Clear();
-        _artists.AddRange(await _folkHttpClient.GetArtistsAsync());
+        var first = await _folkHttpClient.GetAllArtistsAsync();
+        _artists.AddRange(first.Elements);
+
+        if (first.HasMoreResults)
+            LoadRemaining(first.ContinuationToken).GetAwaiter();
         _artists.Sort((a, b) => a.Year!.Value.CompareTo(b.Year!.Value));
         ArtistsView = new(_artists);
+
+        async Task LoadRemaining(string continuationToken)
+        {
+            var page = await _folkHttpClient.GetAllArtistsAsync(continuationToken: continuationToken);
+            _artists.AddRange(page.Elements);
+            if (page.HasMoreResults)
+                LoadRemaining(page.ContinuationToken).GetAwaiter();
+        }
     }
+
 
     [RelayCommand]
     private async Task OnArtistTappedAsync(Guid artistId)

@@ -1,6 +1,6 @@
 ﻿namespace FolkLibrary.Interfaces;
 
-public interface IDataTransterObject
+public interface IDataTransferObject
 {
     Guid Id { get; }
 }

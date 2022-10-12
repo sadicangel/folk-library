@@ -5,14 +5,13 @@ using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System.Data;
 using System.Reflection;
-using System.Reflection.Emit;
 
 namespace FolkLibrary.Services;
 
 internal sealed class FolkDataExporter
 {
-    private static IReadOnlyDictionary<PropertyInfo, Func<Artist, object>> ArtistGetters { get; } = GetGetters<Artist>();
-    private static IReadOnlyDictionary<PropertyInfo, Func<Album, object>> AlbumGetters { get; } = GetGetters<Album>();
+    private static IReadOnlyDictionary<PropertyInfo, Func<Artist, object>> ArtistGetters { get; } = FolkExtensions.CreatePropertyGetters<Artist>();
+    private static IReadOnlyDictionary<PropertyInfo, Func<Album, object>> AlbumGetters { get; } = FolkExtensions.CreatePropertyGetters<Album>();
 	private readonly FolkDbContext _dbContext;
 
     public FolkDataExporter(FolkDbContext dbContext)
@@ -134,55 +133,6 @@ internal sealed class FolkDataExporter
         var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
         var value = getter.Invoke(@object);
         return value is null ? value : Convert.ChangeType(value, propertyType);
-    }
-
-    private static Dictionary<PropertyInfo, Func<T, object>> GetGetters<T>()
-    {
-        var getMethods = new Dictionary<PropertyInfo, Func<T, object>>();
-        foreach (var property in GetProperties().Where(FilterProperty))
-        {
-            Func<T, object> getter;
-            if (property.PropertyType.IsValueType)
-            {
-                var dynMethod = new DynamicMethod(string.Format("Dynamic_Get_{0}_{1}", typeof(T).Name, property.Name), typeof(object), new[] { typeof(T) }, typeof(T).Module);
-                var ilGen = dynMethod.GetILGenerator();
-                ilGen.Emit(OpCodes.Ldarg_0);
-                ilGen.Emit(OpCodes.Callvirt, property.GetGetMethod()!);
-                ilGen.Emit(OpCodes.Box, property.PropertyType);
-                ilGen.Emit(OpCodes.Ret);
-
-                getter = (Func<T, object>)dynMethod.CreateDelegate(typeof(Func<T, object>));
-            }
-            else
-            {
-                getter = (Func<T, object>)Delegate.CreateDelegate(typeof(Func<T, object>), null, property.GetGetMethod()!);
-            }
-
-            getMethods[property] = getter;
-        }
-
-        return getMethods;
-
-        static IEnumerable<PropertyInfo> GetProperties()
-        {
-            var type = typeof(T);
-            var list = new List<Type>();
-            while (type is not null)
-            {
-                list.Add(type);
-                type = type.BaseType;
-            }
-            list.Reverse();
-            return list.SelectMany(t => t.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly));
-        }
-
-        static bool FilterProperty(PropertyInfo property)
-        {
-            return property.CanRead
-                && (property.PropertyType.IsValueType || !property.PropertyType.IsGenericType)
-                && property.Name != nameof(Item.Id)
-                && property.Name != nameof(Item.Type);
-        }
     }
 
     /// <summary>

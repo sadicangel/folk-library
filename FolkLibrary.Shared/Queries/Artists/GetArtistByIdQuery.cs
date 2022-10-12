@@ -2,13 +2,14 @@
 using FolkLibrary.Dtos;
 using FolkLibrary.Exceptions;
 using FolkLibrary.Interfaces;
+using FolkLibrary.Models;
 using MediatR;
 
 namespace FolkLibrary.Queries.Artists;
 
 public sealed class GetArtistByIdQuery : IRequest<ArtistDto>
 {
-    public Guid ArtistId { get; init; }
+    public ArtistId ArtistId { get; init; }
 
     public sealed class Validator : AbstractValidator<GetArtistByIdQuery>
     {

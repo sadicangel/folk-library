@@ -14,6 +14,7 @@ using FolkLibrary.Profiles;
 using FluentValidation;
 using FolkLibrary.Behaviors;
 using FolkLibrary.Dtos;
+using FolkLibrary;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -95,6 +96,8 @@ public static class DependencyInjection
             new GuidAsStringRepresentationConvention()
         },
         type => true);
+        foreach (var idType in FolkExtensions.GetAllIdTypes())
+            BsonSerializer.RegisterSerializer(idType, (IBsonSerializer)Activator.CreateInstance(typeof(IIdBsonSerializer<>).MakeGenericType(idType))!);
         services.AddSingleton<IMongoClient>(new MongoClient(configuration.GetConnectionString("MongoDB")));
         services.AddSingleton<IMongoDatabase>(provider => provider.GetRequiredService<IMongoClient>().GetDatabase("folklibrary"));
         services.AddSingleton(typeof(IMongoRepository<>), typeof(MongoRepository<>));

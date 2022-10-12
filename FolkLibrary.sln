@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.App", "FolkLibr
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{FE960AD1-2B11-457C-A1E2-67BDF9BF09FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FolkLibrary.Functions", "FolkLibrary.Functions\FolkLibrary.Functions\FolkLibrary.Functions.csproj", "{BB85CB3D-7982-4289-8C94-C0B9659840A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.Functions", "FolkLibrary.Functions\FolkLibrary.Functions.csproj", "{5F17C532-D80B-4031-9220-DF61F1608C43}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,10 +37,10 @@ Global
 		{FE960AD1-2B11-457C-A1E2-67BDF9BF09FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE960AD1-2B11-457C-A1E2-67BDF9BF09FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE960AD1-2B11-457C-A1E2-67BDF9BF09FE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BB85CB3D-7982-4289-8C94-C0B9659840A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BB85CB3D-7982-4289-8C94-C0B9659840A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BB85CB3D-7982-4289-8C94-C0B9659840A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BB85CB3D-7982-4289-8C94-C0B9659840A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F17C532-D80B-4031-9220-DF61F1608C43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F17C532-D80B-4031-9220-DF61F1608C43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F17C532-D80B-4031-9220-DF61F1608C43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F17C532-D80B-4031-9220-DF61F1608C43}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,12 +1,13 @@
 {
   "profiles": {
     "FolkLibrary.Functions": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "--port 7217"
     },
     "Docker": {
       "commandName": "Docker",
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
-      "httpPort": 31522,
+      "httpPort": 32025,
       "useSSL": false
     }
   }

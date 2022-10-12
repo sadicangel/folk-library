@@ -14,7 +14,7 @@ services:
     image: ${DOCKER_REGISTRY-}folklibraryfunctions
     build:
       context: .
-      dockerfile: FolkLibrary.Functions/FolkLibrary.Functions/Dockerfile
+      dockerfile: FolkLibrary.Functions/Dockerfile
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:3-management

@@ -3,13 +3,9 @@ using FolkLibrary.Models;
 
 namespace FolkLibrary.Dtos;
 
-public sealed class AlbumDto : IDataTransterObject, IMapFrom<Album>
+public sealed class AlbumDto : DataTransferObject<AlbumId>, IMapFrom<Album>
 {
-    public Guid Id { get; set; }
-
     public string Name { get; set; } = null!;
-
-    public string Type { get; set; } = null!;
 
     public string? Description { get; set; }
 

@@ -33,15 +33,5 @@ internal sealed class MappingProfile : Profile
                 mapToMethod!.Invoke(instance, mapArgs);
             }
         }
-
-        foreach (var type in new List<Type>())
-        {
-            var instance = Activator.CreateInstance(type);
-
-            var methodInfo = type.GetMethod(nameof(IMapFrom<object>.MapFrom)) ??
-                             type.GetInterface("IMapFrom`1")!.GetMethod(nameof(IMapFrom<object>.MapFrom));
-
-            methodInfo?.Invoke(instance, new object[] { this });
-        }
     }
 }

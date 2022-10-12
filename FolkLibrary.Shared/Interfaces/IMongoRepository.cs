@@ -2,7 +2,7 @@
 using FolkLibrary.Models;
 
 namespace FolkLibrary.Interfaces;
-public interface IMongoRepository<T> : IRepositoryBase<T> where T : class, IDataTransterObject
+public interface IMongoRepository<T> : IRepositoryBase<T> where T : class, IDataTransferObject
 {
     string CollectionName { get; }
 

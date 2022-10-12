@@ -21,19 +21,22 @@ public sealed class Query
     {
         var response = await mediator.Send(new GetAllArtistsQuery
         {
-            Country = country,
-            District = district,
-            Municipality = municipality,
-            Parish = parish,
-            AfterYear = afterYear,
-            BeforeYear = beforeYear,
+            QueryParams = new GetAllArtistsQueryParams
+            {
+                Country = country,
+                District = district,
+                Municipality = municipality,
+                Parish = parish,
+                AfterYear = afterYear,
+                BeforeYear = beforeYear,
+            },
             ContinuationToken = continuationToken
 
         });
         return response;
     }
 
-    public async ValueTask<ArtistDto?> GetArtist([Service] ISender mediator, Guid artistId)
+    public async ValueTask<ArtistDto?> GetArtist([Service] ISender mediator, ArtistId artistId)
     {
         try
         {

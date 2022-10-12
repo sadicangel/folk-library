@@ -1,4 +1,5 @@
-﻿using FolkLibrary.Models;
+﻿using FolkLibrary.Interfaces;
+using FolkLibrary.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.CodeAnalysis;
 
@@ -12,5 +13,13 @@ internal sealed class FolkDbContext : DbContext
 
     public FolkDbContext(DbContextOptions options) : base(options)
     {
+    }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+
+        foreach (var idType in FolkExtensions.GetAllIdTypes())
+            configurationBuilder.Properties(idType).HaveConversion(idType.GetNestedType("EfCoreValueConverter")!);
     }
 }

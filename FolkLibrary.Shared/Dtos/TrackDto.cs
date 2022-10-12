@@ -2,10 +2,8 @@
 using FolkLibrary.Models;
 
 namespace FolkLibrary.Dtos;
-public sealed class TrackDto : IDataTransterObject, IMapFrom<Track>
+public sealed class TrackDto : DataTransferObject<TrackId>, IMapFrom<Track>
 {
-    public Guid Id { get; set; }
-
     public string Name { get; set; } = null!;
 
     public string Type { get; set; } = null!;

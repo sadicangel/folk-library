@@ -1,15 +1,19 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM mcr.microsoft.com/azure-functions/dotnet:4 AS base
+FROM mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated6.0 AS base
 WORKDIR /home/site/wwwroot
 EXPOSE 80
 
+FROM mcr.microsoft.com/dotnet/runtime:3.1 as runtime3_1
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+# Copy .NET Core 3.1 runtime from the 3.1 image
+COPY --from=runtime3_1 /usr/share/dotnet/host /usr/share/dotnet/host
+COPY --from=runtime3_1 /usr/share/dotnet/shared /usr/share/dotnet/shared
 WORKDIR /src
-COPY ["FolkLibrary.Functions/FolkLibrary.Functions/FolkLibrary.Functions.csproj", "FolkLibrary.Functions/FolkLibrary.Functions/"]
-RUN dotnet restore "FolkLibrary.Functions/FolkLibrary.Functions/FolkLibrary.Functions.csproj"
+COPY ["FolkLibrary.Functions/FolkLibrary.Functions.csproj", "FolkLibrary.Functions/"]
+RUN dotnet restore "FolkLibrary.Functions/FolkLibrary.Functions.csproj"
 COPY . .
-WORKDIR "/src/FolkLibrary.Functions/FolkLibrary.Functions"
+WORKDIR "/src/FolkLibrary.Functions"
 RUN dotnet build "FolkLibrary.Functions.csproj" -c Release -o /app/build
 
 FROM build AS publish

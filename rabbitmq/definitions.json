@@ -105,7 +105,7 @@
       }
     },
     {
-      "name": "artist.updated.queue",
+      "name": "artist.deleted.queue",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
@@ -114,7 +114,7 @@
       }
     },
     {
-      "name": "artist.deleted.queue",
+      "name": "artist.album.added.queue",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
@@ -157,9 +157,9 @@
     {
       "source": "artist.topic",
       "vhost": "/",
-      "destination": "artist.updated.queue",
+      "destination": "artist.album.added.queue",
       "destination_type": "queue",
-      "routing_key": "artist.updated",
+      "routing_key": "artist.album.added",
       "arguments": {
       }
     }

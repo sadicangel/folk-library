@@ -1,20 +1,24 @@
-﻿using FolkLibrary.Interfaces;
-using FolkLibrary.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
-using MediatR;
-using System.Reflection;
-using MongoDB.Driver;
-using MongoDB.Bson.Serialization.Conventions;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Bson.Serialization;
-using FolkLibrary.Profiles;
+﻿using EasyNetQ;
 using FluentValidation;
-using FolkLibrary.Behaviors;
-using FolkLibrary.Dtos;
 using FolkLibrary;
+using FolkLibrary.Artists;
+using FolkLibrary.Behaviors;
+using FolkLibrary.Interfaces;
+using FolkLibrary.Profiles;
+using FolkLibrary.Repositories;
+using FolkLibrary.Services;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver;
+using System.Reflection;
+using System.Text.Json.Nodes;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -40,6 +44,7 @@ public static class DependencyInjection
         services.AddFolkDbContext(configuration);
         services.AddMongoDb(configuration);
         services.AddFolkDataLoader();
+        services.AddFolkDataValidator();
         services.AddFolkDataExporter();
         return services;
     }
@@ -54,6 +59,13 @@ public static class DependencyInjection
         services.AddTransient<FolkDataLoader>();
         return services;
     }
+
+    public static IServiceCollection AddFolkDataValidator(this IServiceCollection services)
+    {
+        services.AddTransient<FolkDataValidator>();
+        return services;
+    }
+
     public static IServiceCollection AddFolkDataExporter(this IServiceCollection services)
     {
         services.AddTransient<FolkDataExporter>();
@@ -70,7 +82,8 @@ public static class DependencyInjection
     {
         //services.AddEntityFrameworkNamingConventions();
         services.AddDbContextFactory<FolkDbContext>(opts => opts.UseNpgsql(configuration.GetConnectionString("Postgres")).UseSnakeCaseNamingConvention());
-        services.AddScoped(typeof(IPostgresRepository<>), typeof(PostgresRepository<>));
+        services.AddScoped<IAlbumEntityRepository, AlbumEntityRepository>();
+        services.AddScoped<IArtistEntityRepository, ArtistEntityRepository>();
         return services;
     }
 
@@ -100,7 +113,7 @@ public static class DependencyInjection
             BsonSerializer.RegisterSerializer(idType, (IBsonSerializer)Activator.CreateInstance(typeof(IIdBsonSerializer<>).MakeGenericType(idType))!);
         services.AddSingleton<IMongoClient>(new MongoClient(configuration.GetConnectionString("MongoDB")));
         services.AddSingleton<IMongoDatabase>(provider => provider.GetRequiredService<IMongoClient>().GetDatabase("folklibrary"));
-        services.AddSingleton(typeof(IMongoRepository<>), typeof(MongoRepository<>));
+        services.AddSingleton<IArtistDocumentRepository, ArtistDocumentRepository>();
         return services;
     }
 
@@ -110,15 +123,43 @@ public static class DependencyInjection
         return services;
     }
 
-    public static THost LoadDatabaseData<THost>(this THost host, bool overwrite = false) where THost : IHost
+    public static async Task LoadDatabaseData<THost>(this THost host, IConfiguration configuration, bool overwrite = false) where THost : IHost
     {
         using var scope = host.Services.CreateScope();
-        var mongodb = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
-        mongodb.DropCollection(scope.ServiceProvider.GetRequiredService<IMongoRepository<ArtistDto>>().CollectionName);
-        var loader = scope.ServiceProvider.GetRequiredService<FolkDataLoader>();
-        loader.LoadData(overwrite);
-        loader.ValidateData();
-        return host;
+        var dbContext = scope.ServiceProvider.GetRequiredService<FolkDbContext>();
+        var isEmpty = true;
+        try
+        {
+            isEmpty = !await dbContext.Database.CanConnectAsync() || !await dbContext.Set<Artist>().AnyAsync();
+        }
+        catch (Exception)
+        {
+
+        }
+        if (overwrite || isEmpty)
+        {
+            {
+                var fileProvider = scope.ServiceProvider.GetRequiredService<IFileProvider>();
+                var definitionsJson = fileProvider.GetFileInfo("rabbitmq_definitions.json");
+                using var stream = definitionsJson.CreateReadStream();
+                using var reader = new StreamReader(stream);
+                var json = await reader.ReadToEndAsync();
+                var definitions = JsonNode.Parse(json)!;
+                using var bus = RabbitHutch.CreateBus(configuration.GetConnectionString("RabbitMq")).Advanced;
+                foreach (var queue in definitions.Root["queues"]!.AsArray())
+                    await bus.QueuePurgeAsync(queue!["name"]!.GetValue<string>());
+                bus.Dispose();
+            }
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.Database.EnsureCreatedAsync();
+            scope.ServiceProvider.GetRequiredService<IMongoDatabase>()
+                .DropCollection(scope.ServiceProvider.GetRequiredService<IArtistDocumentRepository>().CollectionName);
+            var loader = scope.ServiceProvider.GetRequiredService<FolkDataLoader>();
+            await loader.LoadDataAsync();
+
+            var validator = scope.ServiceProvider.GetRequiredService<FolkDataValidator>();
+            await validator.ValidateDataAsync();
+        }
     }
 
     public static THost ExportDatabaseData<THost>(this THost host, string fileName) where THost : IHost

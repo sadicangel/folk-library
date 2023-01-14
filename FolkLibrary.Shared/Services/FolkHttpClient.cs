@@ -1,7 +1,6 @@
-﻿using FolkLibrary.Dtos;
+﻿using FolkLibrary.Artists;
+using FolkLibrary.Artists.Queries;
 using FolkLibrary.Interfaces;
-using FolkLibrary.Models;
-using FolkLibrary.Queries.Artists;
 using System.Net.Http.Json;
 
 namespace FolkLibrary.Services;
@@ -14,7 +13,7 @@ internal sealed class FolkHttpClient : IFolkHttpClient
         _httpClient = httpClient;
     }
 
-    public async Task<Page<ArtistDto>> GetAllArtistsAsync(GetAllArtistsQueryParams? queryParams = null, string? continuationToken = null)
+    public async Task<Page<ArtistDocument>> GetAllArtistsAsync(GetAllArtistsQueryParams? queryParams = null, string? continuationToken = null)
     {
         var request = new HttpRequestMessage
         {
@@ -24,14 +23,14 @@ internal sealed class FolkHttpClient : IFolkHttpClient
         };
         var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<Page<ArtistDto>>();
+        var result = await response.Content.ReadFromJsonAsync<Page<ArtistDocument>>();
         return result!;
     }
 
-    public async Task<ArtistDto> GetArtistByIdAsync(Guid artistId)
+    public async Task<ArtistDocument> GetArtistByIdAsync(Guid artistId)
     {
         var uri = $"api/artist/{artistId}";
-        var result = await _httpClient.GetFromJsonAsync<ArtistDto>(uri);
+        var result = await _httpClient.GetFromJsonAsync<ArtistDocument>(uri);
         return result!;
     }
 }

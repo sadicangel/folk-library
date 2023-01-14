@@ -1,14 +1,14 @@
 ﻿using Ardalis.Specification;
-using FolkLibrary.Dtos;
+using FolkLibrary.Artists;
 
 namespace FolkLibrary.App.ViewModels;
 public partial class MainViewModel : BaseViewModel
 {
     private readonly IFolkHttpClient _folkHttpClient;
-    private readonly List<ArtistDto> _artists = new();
+    private readonly List<ArtistDocument> _artists = new();
 
     [ObservableProperty]
-    private ObservableCollection<ArtistDto> _artistsView = new();
+    private ObservableCollection<ArtistDocument> _artistsView = new();
 
     [ObservableProperty]
     private bool _showLocal = true;

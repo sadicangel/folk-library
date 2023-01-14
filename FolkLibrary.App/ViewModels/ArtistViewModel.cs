@@ -1,4 +1,4 @@
-﻿using FolkLibrary.Dtos;
+﻿using FolkLibrary.Artists;
 
 namespace FolkLibrary.App.ViewModels;
 
@@ -12,7 +12,7 @@ public partial class ArtistViewModel : BaseViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Location))]
-    private ArtistDto? _artist;
+    private ArtistDocument? _artist;
 
     public string? Location { get => String.Join(" - ", EnumerateLocations(_artist)); }
 
@@ -22,7 +22,7 @@ public partial class ArtistViewModel : BaseViewModel
         _folkHttpClient = folkHttpClient;
     }
 
-    private static IEnumerable<string> EnumerateLocations(ArtistDto? artist)
+    private static IEnumerable<string> EnumerateLocations(ArtistDocument? artist)
     {
         if (artist is not null)
         {
@@ -40,7 +40,7 @@ public partial class ArtistViewModel : BaseViewModel
     [RelayCommand]
     private async Task OnLoadedAsync()
     {
-        if(_artistId == default)
+        if (_artistId == default)
         {
             await NavigationService.ReturnAsync();
             return;

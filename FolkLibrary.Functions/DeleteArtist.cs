@@ -1,26 +1,22 @@
-﻿using FolkLibrary.Dtos;
-using FolkLibrary.Interfaces;
+﻿using FolkLibrary.Artists.Commands;
+using FolkLibrary.Artists.Events;
+using MediatR;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 
 namespace FolkLibrary.Functions;
 
 public sealed class DeleteArtist
 {
-    private readonly ILogger<DeleteArtist> _logger;
-    private readonly IMongoRepository<ArtistDto> _artistRepository;
+    private readonly ISender _mediator;
 
-    public DeleteArtist(ILogger<DeleteArtist> logger, IMongoRepository<ArtistDto> artistRepository)
+    public DeleteArtist(ISender mediator)
     {
-        _logger = logger;
-        _artistRepository = artistRepository;
+        _mediator = mediator;
     }
 
     [Function(nameof(DeleteArtist))]
-    public async Task Run([RabbitMQTrigger("artist.deleted.queue", ConnectionStringSetting = "RabbitMq")] ArtistDto artist)
+    public async Task Run([RabbitMQTrigger("artist.deleted.queue", ConnectionStringSetting = "RabbitMq")] ArtistDeletedEvent @event)
     {
-        await _artistRepository.DeleteAsync(artist);
-        _logger.LogInformation("Deleted {artistName}", artist.Name);
+        await _mediator.Send(new IngestArtistDeletedCommand { Event = @event });
     }
 }

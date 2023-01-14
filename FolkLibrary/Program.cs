@@ -1,5 +1,5 @@
 using FolkLibrary.Filters;
-using FolkLibrary.Queries.GraphQL;
+using FolkLibrary.GraphQL;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 using System.Text.Json.Serialization;
@@ -14,7 +14,11 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddGraphQLServer()
     .AddQueryType<Query>()
     .AddSorting();
-builder.Services.AddControllers(opts => opts.Filters.Add<HttpExceptionFilter>())
+builder.Services.AddControllers(opts =>
+{
+    opts.Filters.Add<HttpExceptionFilter>();
+    //opts.ValueProviderFactories.Add(new CamelCaseQueryValueProviderFactory());
+})
     .AddJsonOptions(opts => opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opts => opts.SupportNonNullableReferenceTypes());
@@ -35,7 +39,7 @@ app.UseAuthorization();
 app.MapGraphQL();
 app.MapControllers();
 
-app.LoadDatabaseData(overwrite: true);
+await app.LoadDatabaseData(app.Configuration, overwrite: false);
 //app.ExportDatabaseData("artists.xlxs");
 
 app.Run();

@@ -1,5 +1,4 @@
-﻿using FolkLibrary.Models;
-using System.Reflection.Emit;
+﻿using System.Reflection.Emit;
 using System.Reflection;
 using FolkLibrary.Interfaces;
 
@@ -55,7 +54,7 @@ public static class FolkExtensions
         {
             return property.CanRead
                 && (property.PropertyType.IsValueType || !property.PropertyType.IsGenericType)
-                && property.Name != nameof(DomainObject<ArtistId>.Id);
+                && property.Name != nameof(IIdObject.Id);
         }
     }
 }

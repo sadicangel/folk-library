@@ -1,4 +1,5 @@
-﻿using FolkLibrary.Models;
+﻿using FolkLibrary.Albums;
+using FolkLibrary.Artists;
 using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;

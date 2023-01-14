@@ -1,12 +1,12 @@
-﻿using FolkLibrary.Exceptions;
-using FolkLibrary.Interfaces;
-using FolkLibrary.Events;
-using FolkLibrary.Models;
+﻿using FolkLibrary.Albums.Commands;
+using FolkLibrary.Artists;
+using FolkLibrary.Artists.Commands;
+using FolkLibrary.Exceptions;
+using FolkLibrary.Repositories;
+using MediatR;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using AutoMapper;
-using FolkLibrary.Dtos;
 
 namespace FolkLibrary.Services;
 
@@ -14,136 +14,115 @@ internal sealed class FolkDataLoader
 {
     private static readonly JsonSerializerOptions? JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly ILogger<FolkDataLoader> _logger;
-    private readonly IMapper _mapper;
+    private readonly ISender _mediator;
     private readonly IFileProvider _fileProvider;
-    private readonly FolkDbContext _dbContext;
-    private readonly IEventPublisher _eventPublisher;
+    private readonly IArtistDocumentRepository _artistDocumentRepository;
 
-    public FolkDataLoader(ILogger<FolkDataLoader> logger, IMapper mapper, IFileProvider fileProvider, FolkDbContext dbContext, IEventPublisher eventPublisher)
+    public FolkDataLoader(ILogger<FolkDataLoader> logger, ISender sender, IFileProvider fileProvider, IArtistDocumentRepository artistDocumentRepository)
     {
         _logger = logger;
-        _mapper = mapper;
+        _mediator = sender;
         _fileProvider = fileProvider;
-        _dbContext = dbContext;
-        _eventPublisher = eventPublisher;
+        _artistDocumentRepository = artistDocumentRepository;
     }
 
-    public void LoadData(bool overwrite = false, string folderName = "data")
+    private readonly record struct ArtistIdentifier(ArtistId Id, string Name, string Folder);
+
+    public async Task LoadDataAsync(string folderName = "data")
     {
-        if (!_dbContext.Database.CanConnect() || overwrite)
+        var dataFolder = _fileProvider.GetFileInfo(folderName).PhysicalPath;
+
+        if (String.IsNullOrWhiteSpace(dataFolder))
+            throw new InvalidOperationException("DataFolder not specified");
+
+        // Create artists.
+        var artists = new Dictionary<string, ArtistIdentifier>();
+        foreach (var artistFolder in Directory.EnumerateDirectories(dataFolder).SkipLast(1))
         {
-            _dbContext.Database.EnsureDeleted();
-            _dbContext.Database.EnsureCreated();
-            var dataFolder = _fileProvider.GetFileInfo(folderName).PhysicalPath;
-            foreach (var artistFolder in Directory.EnumerateDirectories(dataFolder))
-                LoadArtist(artistFolder);
-            _dbContext.SaveChanges();
+            var artist = ReadArtist(artistFolder);
+            _logger.LogInformation("{artistName}", artist.Name);
+            var artistId = await _mediator.Send(artist);
+            artists[artist.Name] = new(artistId, artist.Name, artistFolder);
         }
-    }
 
-    public void ValidateData()
-    {
-        _logger.LogInformation("Validating data... ");
-        var albumsWithoutArtist = _dbContext.Albums.Where(a => a.Artists.Count == 0).ToList();
-        if (albumsWithoutArtist.Count > 0)
-            throw new FolkDataLoadException($"Albums without artist:\n{string.Join('\n', albumsWithoutArtist.Select(t => t.Name))}");
-        var tracksWithoutAlbum = _dbContext.Tracks.Where(t => t.Album == null).ToList();
-        if (tracksWithoutAlbum.Count > 0)
-            throw new FolkDataLoadException($"Tracks without album:\n{string.Join('\n', tracksWithoutAlbum.Select(t => t.Name))}");
-        var tracksWithoutArtist = _dbContext.Tracks.Where(t => t.Artists.Count == 0).ToList();
-        if (tracksWithoutArtist.Count > 0)
-            throw new FolkDataLoadException($"Tracks without artist:\n{string.Join('\n', tracksWithoutArtist.Select(t => t.Name))}");
-        _logger.LogInformation("Done!");
-
-        _logger.LogInformation("Artists..: {artistCount}", _dbContext.Artists.Count());
-        _logger.LogInformation("Albums...: {albumCount}", _dbContext.Albums.Count());
-        _logger.LogInformation("Tracks...: {trackCount}", _dbContext.Tracks.Count());
-    }
-
-    private void LoadArtist(string artistFolder)
-    {
-        Func<string, string[], List<Artist>> findArtists = null!;
-        var isNewArtist = !artistFolder.EndsWith("Vários Artistas");
-        var newArtist = default(Artist);
-        var variousArtists = default(HashSet<Artist>);
-        if (isNewArtist)
+        var timeout = 100;
+        while (await _artistDocumentRepository.CountAsync() != artists.Count)
         {
-            newArtist = ReadArtist(artistFolder);
-            _logger.LogInformation("{artistName}", newArtist.Name);
-            _dbContext.Artists.Add(newArtist);
-            var list = new List<Artist> { newArtist };
-            findArtists = (trackFile, performers) =>
+            _logger.LogInformation("MongoDB not ready. Waiting {timeout} milliseconds to try again", timeout);
+            await Task.Delay(timeout);
+            timeout = (int)(timeout * 1.5);
+        }
+
+        foreach (var (_, artist) in artists)
+        {
+            _logger.LogInformation("{artistName}", artist.Name);
+            foreach (var albumFolder in Directory.EnumerateDirectories(artist.Folder))
             {
-                if (performers.Length != 1 || list[0].Name != performers[0])
-                    throw new FolkDataLoadException($"Artist '{newArtist.Name}' does not match artist for track {trackFile}");
-                return list;
-            };
-        }
-        else
-        {
-            _logger.LogInformation("Vários Artistas");
-            findArtists = (trackFile, performers) =>
-            {
-                var list = _dbContext.Artists.Local.Where(a => performers.Contains(a.Name)).ToList();
-                if (list.Count != performers.Length)
-                    throw new FolkDataLoadException($"Number of artists do not match for track {trackFile}");
-                return list;
-            };
+                var album = ReadAlbum(albumFolder);
+                _logger.LogInformation("\t - {albumName}", album.Name);
+                var performers = new HashSet<string>();
+                foreach (var trackFile in Directory.EnumerateFiles(albumFolder))
+                {
+                    var track = ReadTrack(trackFile, ref performers);
+
+                    if (performers.Count != 1)
+                        throw new FolkDataLoadException($"Number of artists do not match for track {trackFile}");
+                    if (!performers.TryGetValue(artist.Name, out _))
+                        throw new FolkDataLoadException($"Artist '{artist.Name}' does not match artist for track {trackFile}");
+                    album.Tracks.Add(track);
+                }
+                var albumId = await _mediator.Send(album);
+
+                await _mediator.Send(new AddAlbumCommand
+                {
+                    ArtistId = artist.Id,
+                    AlbumId = albumId,
+                });
+            }
         }
 
-        foreach (var albumFolder in Directory.EnumerateDirectories(artistFolder))
+        const string variousArtists = "Vários Artistas";
+        _logger.LogInformation("{artistName}", variousArtists);
+        foreach (var albumFolder in Directory.EnumerateDirectories(Path.Combine(dataFolder, variousArtists)))
         {
             var album = ReadAlbum(albumFolder);
             _logger.LogInformation("\t - {albumName}", album.Name);
-            variousArtists = LoadAlbumTracks(album, Directory.EnumerateFiles(albumFolder), findArtists);
-
-            foreach (var artist in variousArtists)
+            var performers = new HashSet<string>();
+            var tracksContributed = new Dictionary<ArtistId, List<int>>();
+            foreach (var trackFile in Directory.EnumerateFiles(albumFolder))
             {
-                artist.Albums.Add(album);
-                artist.AlbumCount++;
+                var track = ReadTrack(trackFile, ref performers);
+                foreach (var performer in performers)
+                {
+                    if (!artists.TryGetValue(performer, out var artist))
+                        throw new FolkDataLoadException($"Track {trackFile} has no matching artist");
+                    if (!tracksContributed.TryGetValue(artist.Id, out var trackNumbers))
+                        tracksContributed[artist.Id] = trackNumbers = new List<int>();
+                    trackNumbers.Add(track.Number);
+                }
+                album.Tracks.Add(track);
             }
-        }
+            if (tracksContributed.Count == 0)
+                throw new FolkDataLoadException($"No artists for album {album.Name}");
+            var albumId = await _mediator.Send(album);
+            foreach (var (artistId, trackList) in tracksContributed)
+            {
+                await _mediator.Send(new AddAlbumCommand
+                {
+                    ArtistId = artistId,
+                    AlbumId = albumId,
+                    TracksContributed = trackList
 
-        if (isNewArtist)
-        {
-            _eventPublisher.Publish(new ArtistCreatedEvent { Body = _mapper.Map<ArtistDto>(newArtist!) });
-        }
-        else
-        {
-            foreach (var artist in variousArtists!)
-                _eventPublisher.Publish(new ArtistUpdatedEvent { Body = _mapper.Map<ArtistDto>(artist!) });
+                });
+            }
         }
     }
 
-    private static HashSet<Artist> LoadAlbumTracks(Album album, IEnumerable<string> trackFiles, Func<string, string[], List<Artist>> findArtists)
-    {
-        var albumArtists = new HashSet<Artist>();
-        foreach (var trackFile in trackFiles)
-        {
-            var track = ReadTrack(trackFile, out var performers);
-            var variousArtists = findArtists.Invoke(trackFile, performers);
-            if (variousArtists.Count != performers.Length)
-                throw new FolkDataLoadException($"Number of artists do not match for track {trackFile}");
-            foreach (var otherArtist in variousArtists)
-            {
-                otherArtist.Tracks.Add(track);
-                albumArtists.Add(otherArtist);
-            }
 
-            album.Tracks.Add(track);
-            album.TrackCount++;
-            album.Duration += track.Duration;
-        }
-
-        album.IsIncomplete = album.TrackCount != album.Tracks.Max(t => t.Number);
-
-        return albumArtists;
-    }
-
-    private static Artist ReadArtist(string artistFolder)
+    private static CreateArtistCommand ReadArtist(string artistFolder)
     {
         var artistName = Path.GetFileName(artistFolder);
-        var artist = JsonSerializer.Deserialize<Artist>(File.ReadAllText(Path.Combine(artistFolder, "info.json")), JsonOptions)!;
+        var artist = JsonSerializer.Deserialize<CreateArtistCommand>(File.ReadAllText(Path.Combine(artistFolder, "info.json")), JsonOptions)!;
         if (artist.Name != artistName)
             throw new FolkDataLoadException($"Folder '{artistName}' != ArtistName {artist.Name}");
         if (string.IsNullOrEmpty(artist.ShortName))
@@ -152,11 +131,11 @@ internal sealed class FolkDataLoader
         return artist;
     }
 
-    private static Album ReadAlbum(string albumFolder)
+    private static CreateAlbumCommand ReadAlbum(string albumFolder)
     {
         var albumName = Path.GetFileName(albumFolder);
 
-        var album = new Album
+        var album = new CreateAlbumCommand
         {
             Name = albumName,
             Year = null,
@@ -172,12 +151,12 @@ internal sealed class FolkDataLoader
         return album;
     }
 
-    private static Track ReadTrack(string trackFile, out string[] performers)
+    private static CreateTrackDto ReadTrack(string trackFile, ref HashSet<string> performers)
     {
         var meta = TagLib.File.Create(trackFile);
         var tag = meta.Tag;
 
-        var track = new Track
+        var track = new CreateTrackDto
         {
             Name = tag.Title,
             Description = null,
@@ -192,7 +171,7 @@ internal sealed class FolkDataLoader
         if (track.Number == 0)
             throw new FolkDataLoadException($"Track '{trackFile}' has no number");
 
-        performers = tag.Performers;
+        performers.UnionWith(tag.Performers);
 
         return track;
     }

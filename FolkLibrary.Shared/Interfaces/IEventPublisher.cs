@@ -1,9 +1,7 @@
-﻿using FolkLibrary.Events;
-
-namespace FolkLibrary.Interfaces;
+﻿namespace FolkLibrary.Interfaces;
 
 public interface IEventPublisher
 {
-    void Publish<T>(DomainEvent<T> @event);
-    Task PublishAsync<T>(DomainEvent<T> @event, CancellationToken cancellationToken = default);
+    void Publish<TEvent>(TEvent @event) where TEvent : DomainEvent;
+    Task PublishAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default) where TEvent : DomainEvent;
 }

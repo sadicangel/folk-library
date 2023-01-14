@@ -1,6 +1,6 @@
-﻿using FolkLibrary.Commands.Artists;
-using FolkLibrary.Models;
-using FolkLibrary.Queries.Artists;
+﻿using FolkLibrary.Artists;
+using FolkLibrary.Artists.Commands;
+using FolkLibrary.Artists.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +16,7 @@ public class ArtistController : ControllerBase
     {
         _mediator = mediator;
     }
-    
+
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllArtists([FromHeader(Name = "X-Continuation-Token")] string? continuationToken, [FromQuery] GetAllArtistsQueryParams queryParams)
@@ -46,5 +46,15 @@ public class ArtistController : ControllerBase
         var response = await _mediator.Send(createArtistCommand);
 
         return CreatedAtAction(nameof(GetArtistById), new { artistId = response });
+    }
+
+    [HttpPut("album")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> AddAlbum([FromBody] AddAlbumCommand addAlbumCommand)
+    {
+        var response = await _mediator.Send(addAlbumCommand);
+
+        return Ok(response);
     }
 }

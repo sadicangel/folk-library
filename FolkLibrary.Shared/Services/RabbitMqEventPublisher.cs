@@ -1,6 +1,5 @@
 ﻿using EasyNetQ;
 using EasyNetQ.Topology;
-using FolkLibrary.Events;
 using FolkLibrary.Interfaces;
 using Microsoft.Extensions.Configuration;
 using System.Buffers;
@@ -23,9 +22,11 @@ internal sealed class RabbitMqEventPublisher : IEventPublisher, IDisposable
 
     public void Dispose() => _bus.Dispose();
 
-    public void Publish<T>(DomainEvent<T> @event) => _bus.Publish(_exchange, @event.Type, mandatory: false, @event);
+    public void Publish<TEvent>(TEvent @event) where TEvent : DomainEvent =>
+        _bus.Publish(_exchange, @event.Type, mandatory: false, new EventMessage<TEvent>(@event));
 
-    public Task PublishAsync<T>(DomainEvent<T> @event, CancellationToken cancellationToken = default) => _bus.PublishAsync(@_exchange, @event.Type, mandatory: false, @event, cancellationToken);
+    public Task PublishAsync<TEvent>(TEvent @event, CancellationToken cancellationToken = default) where TEvent : DomainEvent =>
+        _bus.PublishAsync(@_exchange, @event.Type, mandatory: false, new EventMessage<TEvent>(@event), cancellationToken);
 
     private sealed class SystemTextJsonSerializer : ISerializer
     {

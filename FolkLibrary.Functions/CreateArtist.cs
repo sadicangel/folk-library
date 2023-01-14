@@ -1,26 +1,22 @@
-using FolkLibrary.Dtos;
-using FolkLibrary.Interfaces;
+using FolkLibrary.Artists.Commands;
+using FolkLibrary.Artists.Events;
+using MediatR;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 
 namespace FolkLibrary.Functions;
 
 public sealed class CreateArtist
 {
-    private readonly ILogger<CreateArtist> _logger;
-    private readonly IMongoRepository<ArtistDto> _artistRepository;
+    private readonly ISender _mediator;
 
-    public CreateArtist(ILogger<CreateArtist> logger, IMongoRepository<ArtistDto> artistRepository)
+    public CreateArtist(ISender mediator)
     {
-        _logger = logger;
-        _artistRepository = artistRepository;
+        _mediator = mediator;
     }
 
     [Function(nameof(CreateArtist))]
-    public async Task Run([RabbitMQTrigger("artist.created.queue", ConnectionStringSetting = "RabbitMq")] ArtistDto artist)
+    public async Task Run([RabbitMQTrigger("artist.created.queue", ConnectionStringSetting = "RabbitMq")] ArtistCreatedEvent @event)
     {
-        await _artistRepository.AddAsync(artist);
-        _logger.LogInformation("Created {artistName}", artist.Name);
+        await _mediator.Send(new IngestCreatedArtistCommand { Event = @event });
     }
 }

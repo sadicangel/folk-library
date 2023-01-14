@@ -9,6 +9,7 @@ services:
       dockerfile: FolkLibrary/Dockerfile
     volumes:
     - /d/music/folk:/app/data
+    - ./rabbitmq/definitions.json:/app/rabbitmq_definitions.json
   folklibrary.functions:
     container_name: folklibrary_functions
     image: ${DOCKER_REGISTRY-}folklibraryfunctions
@@ -27,8 +28,8 @@ services:
   postgres:
     container_name: postgres
     image: postgres
-    #ports:
-    #  - 55432:5432
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

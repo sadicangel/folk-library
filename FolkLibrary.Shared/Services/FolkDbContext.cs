@@ -1,5 +1,6 @@
-﻿using FolkLibrary.Interfaces;
-using FolkLibrary.Models;
+﻿using FolkLibrary.Albums;
+using FolkLibrary.Artists;
+using FolkLibrary.Tracks;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.CodeAnalysis;
 
@@ -21,5 +22,12 @@ internal sealed class FolkDbContext : DbContext
 
         foreach (var idType in FolkExtensions.GetAllIdTypes())
             configurationBuilder.Properties(idType).HaveConversion(idType.GetNestedType("EfCoreValueConverter")!);
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Album>().Navigation(e => e.Tracks).AutoInclude();
     }
 }

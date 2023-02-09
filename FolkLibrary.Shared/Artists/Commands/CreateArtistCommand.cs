@@ -42,7 +42,7 @@ public sealed class CreateArtistCommand : IRequest<ArtistId>, IMapTo<Artist>
             RuleFor(e => e.Description).MaximumLength(byte.MaxValue);
             RuleFor(e => e.Year).NotEmpty();
             RuleFor(e => e.Genres).NotEmpty();
-            RuleFor(e => e.Country).NotEmpty().Length(exactLength: 3);
+            RuleFor(e => e.Country).NotEmpty().Length(exactLength: 2);
         }
     }
 

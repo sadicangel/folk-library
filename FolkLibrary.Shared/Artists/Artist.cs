@@ -10,7 +10,7 @@ public sealed class Artist : Entity<ArtistId>
 {
     public string ShortName { get; set; } = null!;
 
-    [StringLength(maximumLength: 3, MinimumLength = 3)]
+    [StringLength(maximumLength: 2, MinimumLength = 2)]
     public string Country { get; set; } = null!;
 
     public string? District { get; set; }

@@ -20,7 +20,7 @@ internal sealed class FolkHttpClient : IFolkHttpClient
         var request = new HttpRequestMessage
         {
             Method = HttpMethod.Get,
-            RequestUri = new Uri($"api/artist{filter.ToQueryParams()}"),
+            RequestUri = new Uri($"api/artist{filter.ToQueryParams()}", UriKind.Relative),
             Headers =
             {
                 { "X-Continuation-Token", continuationToken },

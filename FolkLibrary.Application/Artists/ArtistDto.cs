@@ -29,7 +29,5 @@ public sealed class ArtistDto : IDocument, IMapFrom<Artist>
 
     public bool IsAbroad { get; set; }
 
-    public required int AlbumCount { get; set; }
-
     public required List<AlbumDto> Albums { get; init; }
 }

@@ -1,0 +1,60 @@
+﻿@page "/artists"
+@using FolkLibrary.Services;
+@inject IFolkHttpClient Http
+@inject ICountryInfoProvider CountryInfo
+
+<PageTitle>FolkLibrary - Artists</PageTitle>
+
+<h1>Artists</h1>
+
+@if (artists == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Year</th>
+                <th>Location</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var artist in artists)
+            {
+                <tr>
+                    <td>@artist.ShortName</td>
+                    <td>@artist.Year</td>
+                    <td>@GetLocation(artist)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IReadOnlyList<ArtistDto>? artists;
+
+    protected override async Task OnInitializedAsync()
+    {
+        artists = (await Http.GetArtistsAsync()).Items;
+    }
+
+    private string GetLocation(ArtistDto artist)
+    {
+        if (artist is null)
+            return String.Empty;
+
+        var list = new List<string?>
+        {
+            artist.Parish,
+            artist.Municipality,
+            artist.District,
+            CountryInfo.GetCountryName(artist.Country),
+        };
+
+        return String.Join(", ", list.Where(s => !String.IsNullOrWhiteSpace(s)));
+    }
+}

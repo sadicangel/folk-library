@@ -17,6 +17,6 @@ public sealed class DeleteArtist
     [Function(nameof(DeleteArtist))]
     public async Task Run([RabbitMQTrigger("artist.deleted.queue", ConnectionStringSetting = "RabbitMq")] ArtistDeletedEvent @event)
     {
-        await _mediator.Send(new IngestArtistDeletedCommand { Event = @event });
+        await _mediator.Send(new IngestArtistDeletedEventCommand { Event = @event });
     }
 }

@@ -17,6 +17,6 @@ public sealed class CreateArtist
     [Function(nameof(CreateArtist))]
     public async Task Run([RabbitMQTrigger("artist.created.queue", ConnectionStringSetting = "RabbitMq")] ArtistCreatedEvent @event)
     {
-        await _mediator.Send(new IngestCreatedArtistCommand { Event = @event });
+        await _mediator.Send(new IngestArtistCreatedEventCommand { Event = @event });
     }
 }

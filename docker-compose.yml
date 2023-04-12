@@ -1,12 +1,12 @@
 version: '3.4'
 
 services:
-  folklibrary:
-    container_name: folklibrary
-    image: ${DOCKER_REGISTRY-}folklibrary
+  folklibrary.webapi:
+    container_name: folklibrary_webapi
+    image: ${DOCKER_REGISTRY-}folklibrarywebapi
     build:
       context: .
-      dockerfile: FolkLibrary/Dockerfile
+      dockerfile: FolkLibrary.WebApi/Dockerfile
     volumes:
     - /d/music/folk:/app/data
     - ./rabbitmq/definitions.json:/app/rabbitmq_definitions.json
@@ -61,3 +61,4 @@ services:
       ME_CONFIG_MONGODB_SERVER: mongodb
     depends_on:
     - mongodb
+

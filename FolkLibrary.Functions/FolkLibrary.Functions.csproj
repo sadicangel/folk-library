@@ -17,7 +17,8 @@
     <PackageReference Include="Serilog.Extensions.Hosting" Version="5.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FolkLibrary.Shared\FolkLibrary.Shared.csproj" />
+    <ProjectReference Include="..\FolkLibrary.Application\FolkLibrary.Application.csproj" />
+    <ProjectReference Include="..\FolkLibrary.Infrastructure\FolkLibrary.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

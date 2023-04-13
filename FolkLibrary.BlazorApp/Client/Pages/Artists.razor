@@ -5,41 +5,33 @@
 
 <PageTitle>FolkLibrary - Artists</PageTitle>
 
-<h1>Artists</h1>
-
-@if (artists == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Year</th>
-                <th>Location</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var artist in artists)
-            {
-                <tr>
-                    <td>@artist.ShortName</td>
-                    <td>@artist.Year</td>
-                    <td>@GetLocation(artist)</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<MudTable Items="@artists" Height="100%" Filter="@Filter" Hover="true" Breakpoint="Breakpoint.Sm" FixedHeader="true" FixedFooter="true" Loading="@(!artists.Any())" LoadingProgressColor="Color.Info">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Artists</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.ShortName)))">Name</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Name)))">Full Name</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Year)))">Year</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Country)))">Location</MudTableSortLabel></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.ShortName</MudTd>
+        <MudTd DataLabel="FullName">@context.Name</MudTd>
+        <MudTd DataLabel="Year">@context.Year@(context.IsYearUncertain ? "?" : "")</MudTd>
+            <MudTd DataLabel="Location">@GetLocation(context)</MudTd>
+    </RowTemplate>
+</MudTable>
 
 @code {
-    private IReadOnlyList<ArtistDto>? artists;
+    private IReadOnlyList<ArtistDto> artists = Array.Empty<ArtistDto>();
+    private string searchString = "";
 
     protected override async Task OnInitializedAsync()
     {
-        artists = (await Http.GetArtistsAsync()).Items;
+        artists = (await Http.GetArtistsAsync(pageSize: 200)).Items;
     }
 
     private string GetLocation(ArtistDto artist)
@@ -49,12 +41,40 @@ else
 
         var list = new List<string?>
         {
-            artist.Parish,
-            artist.Municipality,
-            artist.District,
             CountryInfo.GetCountryName(artist.Country),
+            artist.District,
+            artist.Municipality,
+            artist.Parish,
         };
 
         return String.Join(", ", list.Where(s => !String.IsNullOrWhiteSpace(s)));
+    }
+
+    private bool Filter(ArtistDto artist)
+    {
+        if (String.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (artist.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (artist.ShortName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private object SortBy(ArtistDto artist, string property)
+    {
+        switch (property)
+        {
+            case nameof(ArtistDto.ShortName):
+                return artist.ShortName;
+            case nameof(ArtistDto.Name):
+                return artist.Name;
+            case nameof(ArtistDto.Year):
+                return artist.Year ?? Int32.MaxValue;
+            case nameof(ArtistDto.Country):
+                return $"{artist.Country}{artist.District}{artist.Municipality}{artist.Parish}";
+            default:
+                return artist.Year ?? Int32.MaxValue;
+        }
     }
 }

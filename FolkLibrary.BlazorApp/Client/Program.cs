@@ -13,6 +13,7 @@ builder.Services.AddMudServices();
 builder.Services.AddApplication();
 
 builder.Services.AddTransient<AntiforgeryHandler>();
+builder.Services.AddSingleton<ArtistStateProvider>();
 
 builder.Services.AddHttpClient("backend", client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
     .AddHttpMessageHandler<AntiforgeryHandler>();

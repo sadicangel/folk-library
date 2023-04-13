@@ -1,9 +1,9 @@
 ﻿namespace FolkLibrary;
 
-public readonly record struct Page<T>(IReadOnlyList<T> Items, string? ContinuationToken)
+public readonly record struct Page<T>(int PageIndex, bool HasMoreResults, IReadOnlyList<T> Items)
 {
-    public bool HasMoreResults { get => ContinuationToken is not null; }
-    public string? ContinuationToken { get; init; } = ContinuationToken;
+    public int PageIndex { get; init; } = PageIndex;
+    public bool HasMoreResults { get; init; } = HasMoreResults;
     public int ItemsCount { get => Items.Count; }
     public IReadOnlyList<T> Items { get; init; } = Items;
 }

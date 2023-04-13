@@ -1,11 +1,11 @@
 ﻿@page "/artists"
 @using FolkLibrary.Services;
-@inject IFolkHttpClient Http
 @inject ICountryInfoProvider CountryInfo
+@inject ArtistStateProvider State
 
 <PageTitle>FolkLibrary - Artists</PageTitle>
 
-<MudTable Items="@artists" Height="100%" Filter="@Filter" Hover="true" Breakpoint="Breakpoint.Sm" FixedHeader="true" FixedFooter="true" Loading="@(!artists.Any())" LoadingProgressColor="Color.Info">
+<MudTable Items="@State.Artists" @bind-SelectedItem="@selectedArtist" OnRowClick="@((TableRowClickEventArgs<ArtistDto> e) => OpenDrawer())" Height="100%" Filter="@Filter" Hover="true" Breakpoint="Breakpoint.Sm" FixedHeader="true" FixedFooter="true" Loading="@(!State.Artists.Any())" LoadingProgressColor="Color.Info">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Artists</MudText>
         <MudSpacer />
@@ -15,39 +15,66 @@
         <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.ShortName)))">Name</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Name)))">Full Name</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Year)))">Year</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Country)))">Location</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Location)))">Location</MudTableSortLabel></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Name">@context.ShortName</MudTd>
         <MudTd DataLabel="FullName">@context.Name</MudTd>
-        <MudTd DataLabel="Year">@context.Year@(context.IsYearUncertain ? "?" : "")</MudTd>
-            <MudTd DataLabel="Location">@GetLocation(context)</MudTd>
+        <MudTd DataLabel="Year">@context.YearString</MudTd>
+        <MudTd DataLabel="Location">@CountryInfo.GetCountryName(context.Country) - @context.Location</MudTd>
     </RowTemplate>
 </MudTable>
 
+
+<MudDrawer @bind-Open="@isOpen" Anchor="Anchor.End" Width="35%" Elevation="1" Variant="@DrawerVariant.Temporary">
+    @if (selectedArtist is not null)
+    {
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderAvatar>
+                    <MudAvatar Color="Color.Secondary">@selectedArtist.LetterAvatar</MudAvatar>
+                </CardHeaderAvatar>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h5">@selectedArtist.ShortName</MudText>
+                    <MudText Typo="Typo.body1">@selectedArtist.Name</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+        </MudCard>
+        <MudCardMedia Image="https://picsum.photos/250?blur" Height="250" />
+        <MudCardContent>
+            @if (selectedArtist.Description is not null)
+            {
+                <MudText Typo="Typo.body2">This photo was taken in a small village in Istra Croatia.</MudText>
+            }
+            <MudText Typo="Typo.body1">Albums</MudText>
+            @foreach(var album in selectedArtist.Albums)
+            {
+                <MudText Typo="Typo.body2">@album.Name</MudText>
+            }
+        </MudCardContent>
+        <MudCardActions>
+            <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="Color.Default" />
+            <MudIconButton Icon="@Icons.Material.Filled.Share" Color="Color.Default" />
+        </MudCardActions>
+    }
+</MudDrawer>
+
 @code {
-    private IReadOnlyList<ArtistDto> artists = Array.Empty<ArtistDto>();
     private string searchString = "";
+    private bool isOpen = false;
+    private ArtistDto selectedArtist = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        artists = (await Http.GetArtistsAsync(pageSize: 200)).Items;
+        await State.FetchPageAsync(1, 200);
     }
 
-    private string GetLocation(ArtistDto artist)
+    private async Task<TableData<ArtistDto>> FetchDataAsync(TableState state)
     {
-        if (artist is null)
-            return String.Empty;
-
-        var list = new List<string?>
-        {
-            CountryInfo.GetCountryName(artist.Country),
-            artist.District,
-            artist.Municipality,
-            artist.Parish,
-        };
-
-        return String.Join(", ", list.Where(s => !String.IsNullOrWhiteSpace(s)));
+        return new TableData<ArtistDto>
+            {
+                Items = await State.FetchPageAsync(state.Page)
+            };
     }
 
     private bool Filter(ArtistDto artist)
@@ -57,6 +84,10 @@
         if (artist.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
         if (artist.ShortName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (artist.Country.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (artist.Location.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
         return false;
     }
@@ -76,5 +107,10 @@
             default:
                 return artist.Year ?? Int32.MaxValue;
         }
+    }
+
+    private void OpenDrawer()
+    {
+        isOpen = true;
     }
 }

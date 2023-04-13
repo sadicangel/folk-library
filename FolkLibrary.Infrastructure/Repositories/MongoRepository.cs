@@ -1,21 +1,17 @@
 ﻿using Ardalis.Specification;
-using FolkLibrary.Services;
 using Humanizer;
 using MongoDB.Driver;
 
 namespace FolkLibrary.Repositories;
 internal abstract class MongoRepository<T> : IRepository<T> where T : class, IDocument
 {
-    private readonly IEncryptor _encryptor;
-
     public string CollectionName { get; } = typeof(T).Name.Pluralize().Underscore().Hyphenate();
 
     protected IMongoCollection<T> Collection { get; }
 
-    public MongoRepository(IMongoDatabase database, IEncryptorProvider encryptorProvider)
+    public MongoRepository(IMongoDatabase database)
     {
         Collection = database.GetCollection<T>(CollectionName);
-        _encryptor = encryptorProvider.GetEncryptService(CollectionName);
     }
 
     public async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
@@ -116,11 +112,10 @@ internal abstract class MongoRepository<T> : IRepository<T> where T : class, IDo
         return await cursor.ToListAsync(cancellationToken);
     }
 
-    public async Task<Page<T>> ListAsync(ISpecification<T> specification, string? continuationToken, int pageSize = 20, CancellationToken cancellationToken = default)
+    public async Task<Page<T>> ListAsync(ISpecification<T> specification, int pageIndex, int pageSize = 20, CancellationToken cancellationToken = default)
     {
         const string countName = "count";
         const string dataName = "data";
-        _encryptor.TryDecrypt(continuationToken, out int pageIndex);
 
         var countFacet = AggregateFacet.Create(countName, PipelineDefinition<T, AggregateCountResult>.Create(
             new IPipelineStageDefinition[]
@@ -132,7 +127,7 @@ internal abstract class MongoRepository<T> : IRepository<T> where T : class, IDo
             new IPipelineStageDefinition[]
             {
                 PipelineStageDefinitionBuilder.Sort(specification.ToSortDefinition()),
-                PipelineStageDefinitionBuilder.Skip<T>(pageIndex * pageSize),
+                PipelineStageDefinitionBuilder.Skip<T>((pageIndex - 1) * pageSize),
                 PipelineStageDefinitionBuilder.Limit<T>(pageSize),
             }));
 
@@ -147,16 +142,16 @@ internal abstract class MongoRepository<T> : IRepository<T> where T : class, IDo
 
         return new Page<T>
         {
-            ContinuationToken = nextPageIndex < pageCount ? _encryptor.Encrypt(nextPageIndex) : null,
+            PageIndex = nextPageIndex,
+            HasMoreResults = nextPageIndex < pageCount,
             Items = data
         };
     }
 
-    public async Task<Page<TResult>> ListAsync<TResult>(ISpecification<T, TResult> specification, string? continuationToken, int pageSize = 20, CancellationToken cancellationToken = default)
+    public async Task<Page<TResult>> ListAsync<TResult>(ISpecification<T, TResult> specification, int pageIndex, int pageSize = 20, CancellationToken cancellationToken = default)
     {
         const string countName = "count";
         const string dataName = "data";
-        _encryptor.TryDecrypt(continuationToken, out int pageIndex);
 
         var countFacet = AggregateFacet.Create(countName, PipelineDefinition<T, AggregateCountResult>.Create(
             new IPipelineStageDefinition[]
@@ -168,7 +163,7 @@ internal abstract class MongoRepository<T> : IRepository<T> where T : class, IDo
             new IPipelineStageDefinition[]
             {
                 PipelineStageDefinitionBuilder.Sort(specification.ToSortDefinition()),
-                PipelineStageDefinitionBuilder.Skip<T>(pageIndex * pageSize),
+                PipelineStageDefinitionBuilder.Skip<T>((pageIndex - 1) * pageSize),
                 PipelineStageDefinitionBuilder.Limit<T>(pageSize),
                 PipelineStageDefinitionBuilder.Project(specification.Selector)
             }));
@@ -184,7 +179,8 @@ internal abstract class MongoRepository<T> : IRepository<T> where T : class, IDo
 
         return new Page<TResult>
         {
-            ContinuationToken = nextPageIndex < pageCount ? _encryptor.Encrypt(nextPageIndex) : null,
+            PageIndex = nextPageIndex,
+            HasMoreResults = nextPageIndex < pageCount,
             Items = data
         };
     }

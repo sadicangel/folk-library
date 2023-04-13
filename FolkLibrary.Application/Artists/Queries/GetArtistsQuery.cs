@@ -8,7 +8,7 @@ namespace FolkLibrary.Artists.Queries;
 public sealed class GetArtistsQuery : IRequest<Response<Page<ArtistDto>>>
 {
     public ArtistFilterDto? Filter { get; init; }
-    public string? ContinuationToken { get; init; }
+    public int? PageIndex { get; init; }
     public int? PageSize { get; init; }
 
     public sealed class Validator : AbstractValidator<GetArtistsQuery>
@@ -21,6 +21,8 @@ public sealed class GetArtistsQuery : IRequest<Response<Page<ArtistDto>>>
                 v.When(e => e!.AfterYear is not null, () => v.RuleFor(e => e!.AfterYear).GreaterThanOrEqualTo(1900));
                 v.When(e => e!.BeforeYear is not null, () => v.RuleFor(e => e!.BeforeYear).GreaterThanOrEqualTo(1900));
             }));
+            When(e => e.PageIndex.HasValue, () => RuleFor(e => e.PageIndex).GreaterThan(0));
+            When(e => e.PageSize.HasValue, () => RuleFor(e => e.PageSize).GreaterThan(0));
         }
     }
 
@@ -59,7 +61,7 @@ public sealed class GetArtistsQuery : IRequest<Response<Page<ArtistDto>>>
         public async Task<Response<Page<ArtistDto>>> Handle(GetArtistsQuery request, CancellationToken cancellationToken)
         {
             var specification = new Specification(request.Filter);
-            var artists = await _artistViewRepository.ListAsync(specification, request.ContinuationToken, request.PageSize ?? 20, cancellationToken);
+            var artists = await _artistViewRepository.ListAsync(specification, request.PageIndex ?? 1, request.PageSize ?? 20, cancellationToken);
             return artists;
         }
     }

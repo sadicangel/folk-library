@@ -21,13 +21,13 @@ public class ArtistController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllArtists(
         [FromQuery] ArtistFilterDto? filter,
-        [FromHeader(Name = "X-Continuation-Token")] string? continuationToken,
+        [FromHeader(Name = "X-Page-Index")] int? pageIndex,
         [FromHeader(Name = "X-Page-Size")] int? pageSize)
     {
         var response = await _mediator.Send(new GetArtistsQuery
         {
             Filter = filter,
-            ContinuationToken = continuationToken,
+            PageIndex = pageIndex,
             PageSize = pageSize
         });
         return response.ToActionResult(ok => Ok(ok), filter);

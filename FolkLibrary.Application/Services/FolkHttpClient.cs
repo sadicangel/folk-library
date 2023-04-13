@@ -15,7 +15,7 @@ internal sealed class FolkHttpClient : IFolkHttpClient
         _httpClient = httpClient;
     }
 
-    public async Task<Page<ArtistDto>> GetArtistsAsync(ArtistFilterDto? filter = null, string? continuationToken = null, int? pageSize = null)
+    public async Task<Page<ArtistDto>> GetArtistsAsync(ArtistFilterDto? filter = null, int? pageIndex = null, int? pageSize = null)
     {
         var request = new HttpRequestMessage
         {
@@ -23,7 +23,7 @@ internal sealed class FolkHttpClient : IFolkHttpClient
             RequestUri = new Uri($"api/artist{filter.ToQueryParams()}", UriKind.Relative),
             Headers =
             {
-                { "X-Continuation-Token", continuationToken },
+                { "X-Page-Index", pageIndex.ToString() },
                 { "X-Page-Size", pageSize?.ToString() }
             }
         };
@@ -43,7 +43,7 @@ internal sealed class FolkHttpClient : IFolkHttpClient
 
 file static class QueryParamsHelper
 {
-    private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public static string ToQueryParams<T>(this T? obj) where T : class
     {

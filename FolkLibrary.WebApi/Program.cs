@@ -1,5 +1,4 @@
 using FolkLibrary.Filters;
-using FolkLibrary.Services;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 using System.Text.Json.Serialization;
@@ -38,6 +37,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Services.GetRequiredService<ICountryInfoProvider>();
+await app.LoadDatabaseData(app.Configuration, overwrite: true);
 
 app.Run();

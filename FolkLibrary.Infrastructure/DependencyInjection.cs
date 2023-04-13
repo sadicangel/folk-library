@@ -25,8 +25,8 @@ public static class DependencyInjection
     {
         // Postgres
         services.AddDbContextFactory<FolkDbContext>(opts => opts.UseNpgsql(configuration.GetConnectionString("Postgres")).UseSnakeCaseNamingConvention());
-        services.AddScoped<IAlbumRepository, AlbumEntityRepository>();
-        services.AddScoped<IArtistRepository, ArtistEntityRepository>();
+        services.AddScoped<IAlbumRepository, AlbumRepository>();
+        services.AddScoped<IArtistRepository, ArtistRepository>();
 
         // MongoDB
         ConventionRegistry.Register("FolkLibrary", new ConventionPack
@@ -39,7 +39,7 @@ public static class DependencyInjection
         type => true);
         services.AddSingleton<IMongoClient>(new MongoClient(configuration.GetConnectionString("MongoDB")));
         services.AddSingleton<IMongoDatabase>(provider => provider.GetRequiredService<IMongoClient>().GetDatabase("folklibrary"));
-        services.AddSingleton<IArtistViewRepository, ArtistDocumentRepository>();
+        services.AddSingleton<IArtistViewRepository, ArtistViewRepository>();
 
         // Messaging
         services.AddSingleton<IAdvancedBus>(services =>

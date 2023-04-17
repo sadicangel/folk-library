@@ -1,9 +1,8 @@
-﻿using MediatR;
-using System.Net.Mime;
+﻿using System.Net.Mime;
 
 namespace FolkLibrary;
 
-public abstract class DomainEvent : INotification
+public abstract class DomainEvent
 {
     public string Id { get; init; } = Guid.NewGuid().ToString();
 

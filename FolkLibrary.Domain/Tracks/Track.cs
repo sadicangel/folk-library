@@ -13,6 +13,8 @@ public sealed class Track : Entity
 
     public required Album Album { get; set; }
 
+    public int ArtistCound { get => Artists.Count; }
+
     public HashSet<Artist> Artists { get; set; } = new();
 
     private string GetDebuggerDisplay() => $"{Number:D2} {Name} ({Duration:mm\\:ss})";

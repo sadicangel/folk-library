@@ -21,11 +21,13 @@ public sealed class Artist : Entity
 
     public bool IsAbroad { get; set; }
 
-    public required int AlbumCount { get; set; }
+    public int AlbumCount { get => Albums.Count; }
 
-    public List<Album> Albums { get; set; } = new();
+    public List<Album> Albums { get; init; } = new();
 
-    public List<Track> Tracks { get; set; } = new();
+    public int TracksCount { get => Tracks.Count; }
+
+    public List<Track> Tracks { get; init; } = new();
 
     private string GetDebuggerDisplay() => Name;
 }

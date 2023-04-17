@@ -8,12 +8,10 @@
       "composeLaunchUrl": "{Scheme}://localhost:{ServicePort}/swagger",
       "serviceActions": {
         "mongodb": "StartWithoutDebugging",
-        "folklibrary.functions": "StartDebugging",
         "folklibrary.webapi": "StartDebugging",
         "mongodb.admin": "StartWithoutDebugging",
         "postgres": "StartWithoutDebugging",
         "postgres.admin": "StartWithoutDebugging",
-        "rabbitmq": "StartWithoutDebugging"
       }
     }
   }

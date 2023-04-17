@@ -1,7 +1,5 @@
-﻿using EasyNetQ;
-using FolkLibrary.Database;
+﻿using FolkLibrary.Database;
 using FolkLibrary.Interfaces;
-using FolkLibrary.Messaging;
 using FolkLibrary.Repositories;
 using FolkLibrary.Services;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +10,6 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
-using System.Text.Json;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -37,18 +34,6 @@ public static class DependencyInjection
         services.AddSingleton<IMongoClient>(new MongoClient(configuration.GetConnectionString("MongoDB")));
         services.AddSingleton<IMongoDatabase>(provider => provider.GetRequiredService<IMongoClient>().GetDatabase("folklibrary"));
         services.AddSingleton<IArtistViewRepository, ArtistViewRepository>();
-
-        // Messaging
-        services.AddSingleton<IAdvancedBus>(services =>
-        {
-            var bus = RabbitHutch.CreateBus(configuration.GetConnectionString("RabbitMq"),
-                services => services.EnableSystemTextJson(new JsonSerializerOptions(JsonSerializerDefaults.Web))).Advanced;
-            bus.ExchangeDeclarePassive(configuration.GetSection("RabbitMq:Topic").Value);
-            return bus;
-        });
-        services.AddScoped<IArtistAlbumAddedEventPublisher, ArtistAlbumAddedEventPublisher>();
-        services.AddScoped<IArtistCreatedEventPublisher, ArtistCreatedEventPublisher>();
-        services.AddScoped<IArtistDeletedEventPublisher, ArtistDeletedEventPublisher>();
 
         // Other
         services.AddTransient<FolkDataExporter>();

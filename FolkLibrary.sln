@@ -5,8 +5,6 @@ VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{FE960AD1-2B11-457C-A1E2-67BDF9BF09FE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.Functions", "FolkLibrary.Functions\FolkLibrary.Functions.csproj", "{5F17C532-D80B-4031-9220-DF61F1608C43}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.Domain", "FolkLibrary.Domain\FolkLibrary.Domain.csproj", "{C04F51DF-91FA-4ECC-B980-1D97431FF949}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.Application", "FolkLibrary.Application\FolkLibrary.Application.csproj", "{7560C877-22F6-4441-BB87-C2C7A83875A8}"
@@ -15,9 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.Infrastructure"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.WebApi", "FolkLibrary.WebApi\FolkLibrary.WebApi.csproj", "{AEFADD2A-B6EB-4B28-AB8F-B7BB0074DDD2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FolkLibrary.BlazorApp.Server", "FolkLibrary.BlazorApp\Server\FolkLibrary.BlazorApp.Server.csproj", "{5DA241B1-720E-4428-85BE-9BBE4B8A36DE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.BlazorApp.Server", "FolkLibrary.BlazorApp\Server\FolkLibrary.BlazorApp.Server.csproj", "{5DA241B1-720E-4428-85BE-9BBE4B8A36DE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FolkLibrary.BlazorApp.Client", "FolkLibrary.BlazorApp\Client\FolkLibrary.BlazorApp.Client.csproj", "{877EEE9A-F375-4ADF-BA0E-A7060E3DE296}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.BlazorApp.Client", "FolkLibrary.BlazorApp\Client\FolkLibrary.BlazorApp.Client.csproj", "{877EEE9A-F375-4ADF-BA0E-A7060E3DE296}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +27,6 @@ Global
 		{FE960AD1-2B11-457C-A1E2-67BDF9BF09FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE960AD1-2B11-457C-A1E2-67BDF9BF09FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE960AD1-2B11-457C-A1E2-67BDF9BF09FE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5F17C532-D80B-4031-9220-DF61F1608C43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5F17C532-D80B-4031-9220-DF61F1608C43}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5F17C532-D80B-4031-9220-DF61F1608C43}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5F17C532-D80B-4031-9220-DF61F1608C43}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C04F51DF-91FA-4ECC-B980-1D97431FF949}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C04F51DF-91FA-4ECC-B980-1D97431FF949}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C04F51DF-91FA-4ECC-B980-1D97431FF949}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -6,9 +6,5 @@
     <Nullable>enable</Nullable>
     <RootNamespace>FolkLibrary</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="EasyNetQ.DI.Microsoft" Version="7.5.0" />
-  </ItemGroup>
   
 </Project>

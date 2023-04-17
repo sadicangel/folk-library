@@ -1,10 +1,6 @@
 version: '3.4'
 
 services:
-  folklibrary.functions:
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-
   folklibrary.webapi:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development

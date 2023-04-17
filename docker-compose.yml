@@ -9,30 +9,9 @@ services:
       dockerfile: FolkLibrary.WebApi/Dockerfile
     volumes:
     - /d/music/folk:/app/data
-    - ./rabbitmq/definitions.json:/app/rabbitmq_definitions.json
     depends_on:
     - postgres
     - mongodb
-    - rabbitmq
-  folklibrary.functions:
-    container_name: Functions
-    image: ${DOCKER_REGISTRY-}folklibraryfunctions
-    build:
-      context: .
-      dockerfile: FolkLibrary.Functions/Dockerfile
-    depends_on:
-    - postgres
-    - mongodb
-    - rabbitmq
-  rabbitmq:
-    container_name: RabbitMQ
-    image: rabbitmq:3-management
-    ports:
-    - 15672:15672
-    volumes:
-    - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
-    environment:
-    - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"
   postgres:
     container_name: Postgres
     image: postgres

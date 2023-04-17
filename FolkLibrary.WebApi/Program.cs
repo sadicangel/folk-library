@@ -31,6 +31,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerGen();
 }
 
-await app.LoadDatabaseData(app.Configuration, overwrite: true);
+await app.LoadDatabaseData(app.Configuration, overwrite: false);
 
 app.Run();

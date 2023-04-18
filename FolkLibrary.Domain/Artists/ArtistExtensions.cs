@@ -6,16 +6,25 @@ public static class ArtistExtensions
     {
         Span<char> chars = stackalloc char[3];
         int i = 0;
-        foreach (var (part, _) in artist.ShortName.SplitLines())
+        foreach (var part in artist.ShortName.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
         {
-            if (part.Length > 3)
+            if (ShouldInclude(part))
             {
                 chars[i++] = part[0];
                 if (i >= chars.Length)
                     break;
             }
         }
+
         return new string(chars[..i]);
+
+        static bool ShouldInclude(string str)
+        {
+            return str.Length >= 3
+                && str.All(Char.IsLetter)
+                && !str.Equals("dos", StringComparison.InvariantCultureIgnoreCase)
+                && !str.Equals("das", StringComparison.InvariantCultureIgnoreCase);
+        }
     }
 
     public static string GetLocation(this Artist artist)

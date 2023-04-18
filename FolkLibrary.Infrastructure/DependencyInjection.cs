@@ -1,4 +1,5 @@
-﻿using FolkLibrary.Database;
+﻿using FolkLibrary.Artists;
+using FolkLibrary.Database;
 using FolkLibrary.Interfaces;
 using FolkLibrary.Repositories;
 using FolkLibrary.Services;
@@ -37,6 +38,8 @@ public static class DependencyInjection
 
         // Other
         services.AddTransient<FolkDataExporter>();
+        services.AddTransient<FolkDataLoader>();
+        services.AddTransient<FolkDataValidator>();
 
         services.AddTransient<IMp3Converter, Mp3Converter>();
 
@@ -49,6 +52,33 @@ public static class DependencyInjection
         var exporter = scope.ServiceProvider.GetRequiredService<FolkDataExporter>();
         exporter.WriteXlsx(fileName, overwrite: true);
         return host;
+    }
+
+    public static async Task LoadDatabaseData<THost>(this THost host, IConfiguration configuration, bool overwrite = false) where THost : IHost
+    {
+        using var scope = host.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<FolkDbContext>();
+        var isEmpty = true;
+        try
+        {
+            isEmpty = !await dbContext.Database.CanConnectAsync() || !await dbContext.Set<Artist>().AnyAsync();
+        }
+        catch (Exception)
+        {
+
+        }
+        if (overwrite || isEmpty)
+        {
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.Database.EnsureCreatedAsync();
+            scope.ServiceProvider.GetRequiredService<IMongoDatabase>()
+                .DropCollection(scope.ServiceProvider.GetRequiredService<IArtistViewRepository>().CollectionName);
+            var loader = scope.ServiceProvider.GetRequiredService<FolkDataLoader>();
+            await loader.LoadDataAsync();
+
+            var validator = scope.ServiceProvider.GetRequiredService<FolkDataValidator>();
+            await validator.ValidateDataAsync();
+        }
     }
 }
 

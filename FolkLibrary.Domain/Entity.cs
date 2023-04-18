@@ -1,9 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FolkLibrary;
 public abstract class Entity
 {
+    [Key]
     [Column(Order = 0)]
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public string Id { get; init; } = Guid.NewGuid().ToString();
 
     [Column(Order = 1)]

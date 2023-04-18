@@ -1,6 +1,5 @@
 using FastEndpoints;
 using FastEndpoints.Swagger;
-using FolkLibrary.Services;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 
@@ -9,8 +8,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((host, opts) => opts.WriteTo.Console().MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Warning));
 
 builder.Services.AddSingleton<IFileProvider>(services => services.GetRequiredService<IWebHostEnvironment>().ContentRootFileProvider);
-builder.Services.AddTransient<FolkDataLoader>();
-builder.Services.AddTransient<FolkDataValidator>();
 
 builder.Services.AddApplication();
 
@@ -31,6 +28,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerGen();
 }
 
-await app.LoadDatabaseData(app.Configuration, overwrite: false);
+await app.LoadDatabaseData(app.Configuration, overwrite: true);
 
 app.Run();

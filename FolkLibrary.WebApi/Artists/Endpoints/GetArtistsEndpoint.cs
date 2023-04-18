@@ -11,10 +11,10 @@ public sealed class GetArtistsRequest
     [FromQueryParams]
     public ArtistFilterDto? Filter { get; init; }
 
-    [FromHeader(IsRequired = false)]
+    [FromHeader(HeaderName = "X-Page-Index", IsRequired = false)]
     public int? PageIndex { get; init; }
 
-    [FromHeader(IsRequired = false)]
+    [FromHeader(HeaderName = "X-Page-Size", IsRequired = false)]
     public int? PageSize { get; init; }
 
     public sealed class Validator : Validator<GetArtistsRequest>

@@ -1,5 +1,7 @@
 ﻿@page "/artists"
+@using FolkLibrary.Albums;
 @using FolkLibrary.Services;
+@using FolkLibrary.Tracks;
 @inject ICountryInfoProvider CountryInfo
 @inject ArtistStateProvider State
 
@@ -12,16 +14,20 @@
         <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <HeaderContent>
+        <MudTh></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.ShortName)))">Name</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Name)))">Full Name</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Year)))">Year</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Country)))">Country</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Location)))">Location</MudTableSortLabel></MudTh>
     </HeaderContent>
     <RowTemplate>
+        <MudTd DataLabel="Avatar"><MudAvatar Color="Color.Tertiary">@context.LetterAvatar</MudAvatar></MudTd>
         <MudTd DataLabel="Name">@context.ShortName</MudTd>
         <MudTd DataLabel="FullName">@context.Name</MudTd>
         <MudTd DataLabel="Year">@context.YearString</MudTd>
-        <MudTd DataLabel="Location">@CountryInfo.GetCountryName(context.Country) - @context.Location</MudTd>
+        <MudTd DataLabel="Country"><MudImage Height="24" Src="@GetCountryImageUrl(context.Country)" Alt="@CountryInfo.GetCountryName(context.Country)" /></MudTd>
+        <MudTd DataLabel="Location">@context.Location</MudTd>
     </RowTemplate>
 </MudTable>
 
@@ -32,7 +38,7 @@
         <MudCard>
             <MudCardHeader>
                 <CardHeaderAvatar>
-                    <MudAvatar Color="Color.Secondary">@selectedArtist.LetterAvatar</MudAvatar>
+                    <MudAvatar>@selectedArtist.LetterAvatar</MudAvatar>
                 </CardHeaderAvatar>
                 <CardHeaderContent>
                     <MudText Typo="Typo.h5">@selectedArtist.ShortName</MudText>
@@ -47,10 +53,17 @@
                 <MudText Typo="Typo.body2">This photo was taken in a small village in Istra Croatia.</MudText>
             }
             <MudText Typo="Typo.body1">Albums</MudText>
-            @foreach(var album in selectedArtist.Albums)
-            {
-                <MudText Typo="Typo.body2">@album.Name</MudText>
-            }
+            <MudTreeView T="string" ExpandOnClick="true">
+                @foreach (var album in selectedArtist.Albums.OrderBy(a => a.Year ?? Int32.MaxValue).ThenBy(a => a.Name))
+                {
+                    <MudTreeViewItem Value="@album.Name">
+                        @foreach (var track in album.Tracks.OrderBy(t => t.Number))
+                        {
+                            <MudTreeViewItem Value="@($"{track.Number:D2} {track.Name} ({track.Duration:mm\\:ss})")" />
+                        }
+                    </MudTreeViewItem>
+                }
+            </MudTreeView>
         </MudCardContent>
         <MudCardActions>
             <MudIconButton Icon="@Icons.Material.Filled.Favorite" Color="Color.Default" />
@@ -103,7 +116,9 @@
             case nameof(ArtistDto.Year):
                 return artist.Year ?? Int32.MaxValue;
             case nameof(ArtistDto.Country):
-                return $"{artist.Country}{artist.District}{artist.Municipality}{artist.Parish}";
+                return artist.Country;
+            case nameof(ArtistDto.Location):
+                return artist.Location;
             default:
                 return artist.Year ?? Int32.MaxValue;
         }
@@ -112,5 +127,19 @@
     private void OpenDrawer()
     {
         isOpen = true;
+    }
+
+    private static string GetCountryImageUrl(string country)
+    {
+        return $"/flags/{country.ToLowerInvariant()}.png";
+    }
+
+    private static string GetHslColor(string str)
+    {
+        var hash = Math.Abs(str.GetHashCode());
+        var h = (hash % (0 - 360)) + 0;
+        var s = (hash % (50 - 75)) + 50;
+        var l = (hash % (25 - 60)) + 25;
+        return $"hsl({h}, {s}%, {l}%)";
     }
 }

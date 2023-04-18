@@ -12,7 +12,7 @@ public sealed class CreateTrackDto : IMapTo<Track>
 
     public bool IsYearUncertain { get; init; }
 
-    public required HashSet<string> Genres { get; init; }
+    public required List<string> Genres { get; init; }
 
     public required int Number { get; init; }
 

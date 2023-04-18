@@ -14,7 +14,7 @@ public sealed class TrackDto : IDocument, IMapFrom<Track>
 
     public bool IsYearUncertain { get; set; }
 
-    public required HashSet<string> Genres { get; init; }
+    public required List<string> Genres { get; init; }
 
     public required int Number { get; set; }
 

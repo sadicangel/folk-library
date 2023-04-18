@@ -57,9 +57,9 @@ public sealed class AddArtistAlbumEndpoint : Endpoint<AddArtistAlbumRequest>
         }
         artist.Albums.Add(album);
         if (request.Tracks.Count > 0)
-            artist.Tracks.AddRange(album.Tracks.Where(t => request.Tracks.Contains(t.Number)).ToList());
+            artist.Tracks.UnionWith(album.Tracks.Where(t => request.Tracks.Contains(t.Number)).ToList());
         else
-            artist.Tracks.AddRange(album.Tracks);
+            artist.Tracks.UnionWith(album.Tracks);
 
         await _artistRepository.UpdateAsync(artist, cancellationToken);
         await PublishAsync(new ArtistAlbumAddedEvent { ArtistId = artist.Id, AlbumId = album.Id }, Mode.WaitForNone, cancellationToken);

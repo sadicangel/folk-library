@@ -18,7 +18,7 @@ public sealed class Album : Entity
 
     public int TrackCount { get => Tracks.Count; }
 
-    public List<Track> Tracks { get; init; } = new();
+    public HashSet<Track> Tracks { get; init; } = new();
 
     private string GetDebuggerDisplay() => $"{Name} ({Duration:mm\\:ss})";
 }

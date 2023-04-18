@@ -23,11 +23,11 @@ public sealed class Artist : Entity
 
     public int AlbumCount { get => Albums.Count; }
 
-    public List<Album> Albums { get; init; } = new();
+    public HashSet<Album> Albums { get; init; } = new();
 
     public int TracksCount { get => Tracks.Count; }
 
-    public List<Track> Tracks { get; init; } = new();
+    public HashSet<Track> Tracks { get; init; } = new();
 
     private string GetDebuggerDisplay() => Name;
 }

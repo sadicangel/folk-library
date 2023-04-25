@@ -1,10 +1,8 @@
 ﻿using Docker.DotNet;
 using Docker.DotNet.Models;
-using FolkLibrary;
 using FolkLibrary.Interfaces;
 using FolkLibrary.Services;
 using Microsoft.Extensions.Configuration;
-using System.Reflection;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -12,10 +10,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        var currentAsm = typeof(DependencyInjection).Assembly;
-        var callingAsm = Assembly.GetCallingAssembly();
         services.AddSingleton<ICountryInfoProvider, CountryInfoProvider>();
-        services.AddAutoMapper(config => config.AddProfile(new AutoMapperProfile(currentAsm, callingAsm)));
         return services;
     }
 

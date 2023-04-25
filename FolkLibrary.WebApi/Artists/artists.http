@@ -1,0 +1,56 @@
+@url = https://localhost:59170/api/artist/
+
+# @name getArtists
+GET {{url}}
+    ?country=PT
+    &district=Viana do Castelo
+    &municipality=Ponte de Lima
+    &Parish=São Martinho da Gandra
+    &afterYear=1920
+    &beforeYear=2020
+X-Page-Index: 1
+x-Page-Size: 20
+
+###
+# @name createArtist
+POST {{url}}
+Content-Type: application/json
+
+{
+    "name": "Test Artist Full Name",
+    "shortName": "Test Artist",
+    "description": "Test Artist description",
+    "year": 2000,
+    "isYearUncertain": false,
+    "genres": [
+        "Rock",
+        "Folk"
+    ],
+    "country": "PT",
+    "district": "Lisboa",
+    "municipality": "Lisboa",
+    "parish": "Campolide",
+    "isAbroad": false
+}
+
+###
+
+# @name getArtistById
+@artistId = {{createArtist.response.body.$.id}}
+GET {{url}}{{artistId}}
+
+###
+# @name updateArtist
+@artistId = {{createArtist.response.body.$.id}}
+PUT {{url}}{{artistId}}
+Content-Type: application/json
+
+{
+    "year": 1987,
+    "description": "Updated description"
+}
+
+###
+# @name deleteArtist
+@artistId = {{createArtist.response.body.$.id}}
+DELETE {{url}}{{artistId}}

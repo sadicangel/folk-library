@@ -1,9 +1,9 @@
-﻿using AutoMapper;
-using FolkLibrary.Albums;
+﻿using FolkLibrary.Albums;
 using FolkLibrary.Artists;
 using FolkLibrary.Database;
 using FolkLibrary.Repositories;
 using FolkLibrary.Tracks;
+using Mapster;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
@@ -15,15 +15,13 @@ internal sealed class FolkDataLoader
 {
     private static readonly JsonSerializerOptions? JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly ILogger<FolkDataLoader> _logger;
-    private readonly IMapper _mapper;
     private readonly IFileProvider _fileProvider;
     private readonly FolkDbContext _dbContext;
     private readonly IArtistViewRepository _artistViewRepository;
 
-    public FolkDataLoader(ILogger<FolkDataLoader> logger, IMapper mapper, IFileProvider fileProvider, FolkDbContext dbContext, IArtistViewRepository artistViewRepository)
+    public FolkDataLoader(ILogger<FolkDataLoader> logger, IFileProvider fileProvider, FolkDbContext dbContext, IArtistViewRepository artistViewRepository)
     {
         _logger = logger;
-        _mapper = mapper;
         _fileProvider = fileProvider;
         _dbContext = dbContext;
         _artistViewRepository = artistViewRepository;
@@ -54,7 +52,7 @@ internal sealed class FolkDataLoader
             _logger.LogInformation("{artistName}", artist.Name);
             foreach (var albumFolder in Directory.EnumerateDirectories(folder))
             {
-                var album = ReadAlbum(albumFolder);
+                var album = ReadAlbum(albumFolder, isCompilation: false);
                 album.Artists.Add(artist);
                 _logger.LogInformation("\t - {albumName}", album.Name);
 
@@ -71,18 +69,19 @@ internal sealed class FolkDataLoader
 
                     album.Tracks.Add(track);
                 }
-
                 artist.Albums.Add(album);
             }
         }
 
         const string variousArtists = "Vários Artistas";
         _logger.LogInformation("{artistName}", variousArtists);
+        var albumTracksByArtistId = new Dictionary<string, Dictionary<string, List<int>>>();
         foreach (var albumFolder in Directory.EnumerateDirectories(Path.Combine(dataFolder, variousArtists)))
         {
-            var album = ReadAlbum(albumFolder);
+            var album = ReadAlbum(albumFolder, isCompilation: true);
             _logger.LogInformation("\t - {albumName}", album.Name);
             var albumArtists = new List<Artist>();
+            var tracksByArtistId = albumTracksByArtistId[album.Id] = new Dictionary<string, List<int>>();
             foreach (var trackFile in Directory.EnumerateFiles(albumFolder))
             {
                 var track = ReadTrack(trackFile, album, out var performers);
@@ -93,6 +92,9 @@ internal sealed class FolkDataLoader
                     var (artist, _) = artistIdentifier;
                     artist.Tracks.Add(track);
                     albumArtists.Add(artist);
+                    if (!tracksByArtistId.TryGetValue(artist.Id, out var artistTracks))
+                        tracksByArtistId[artist.Id] = artistTracks = new List<int>();
+                    artistTracks.Add(track.Number);
                 }
                 album.Tracks.Add(track);
             }
@@ -102,7 +104,10 @@ internal sealed class FolkDataLoader
 
         await _dbContext.SaveChangesAsync();
 
-        var artistDtos = _mapper.Map<IEnumerable<ArtistDto>>(artistsByName.Values.Select(a => a.Artist));
+        var artistDtos = artistsByName.Values.Select(a => a.Artist).Adapt<List<ArtistDto>>();
+        foreach (var artist in artistDtos)
+            foreach (var album in artist.Albums.Where(a => a.IsCompilation))
+                album.TracksContributedByArtist = albumTracksByArtistId[album.Id][artist.Id];
         await _artistViewRepository.AddRangeAsync(artistDtos);
     }
 
@@ -119,7 +124,7 @@ internal sealed class FolkDataLoader
         return artist;
     }
 
-    private static Album ReadAlbum(string albumFolder)
+    private static Album ReadAlbum(string albumFolder, bool isCompilation)
     {
         var albumName = Path.GetFileName(albumFolder);
 
@@ -129,11 +134,11 @@ internal sealed class FolkDataLoader
         {
             Name = albumName,
             Description = null,
+            IsCompilation = isCompilation,
             Year = year,
             IsYearUncertain = year is null,
             Genres = new HashSet<string> { "Folk" },
-            Tracks = new(),
-            Duration = TimeSpan.Zero
+            Tracks = new()
         };
 
         return album;
@@ -155,6 +160,7 @@ internal sealed class FolkDataLoader
             Description = null,
             Number = (int)tag.Track,
             Year = tag.Year != 0 ? (int)tag.Year : null,
+            IsYearUncertain = tag.Year == 0,
             Duration = meta.Properties.Duration,
             Genres = new HashSet<string> { "Folk" },
         };

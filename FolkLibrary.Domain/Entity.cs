@@ -27,4 +27,15 @@ public abstract class Entity
     public override bool Equals(object? obj) => obj is Entity other && Id == other.Id;
 
     public override int GetHashCode() => Id.GetHashCode();
+
+    public string GetYearString()
+    {
+        if (!Year.HasValue)
+            return "";
+
+        if (IsYearUncertain)
+            return FormattableString.Invariant($"{Year}?");
+
+        return FormattableString.Invariant($"{Year}");
+    }
 }

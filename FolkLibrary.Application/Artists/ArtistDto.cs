@@ -1,10 +1,8 @@
-﻿using AutoMapper;
-using FolkLibrary.Albums;
-using FolkLibrary.Application.Interfaces;
+﻿using FolkLibrary.Albums;
 
 namespace FolkLibrary.Artists;
 
-public sealed class ArtistDto : IDocument, IMapFrom<Artist>
+public sealed class ArtistDto : IDocument
 {
     public required string Id { get; init; }
 
@@ -37,12 +35,4 @@ public sealed class ArtistDto : IDocument, IMapFrom<Artist>
     public bool IsAbroad { get; init; }
 
     public required List<AlbumDto> Albums { get; init; }
-
-    void IMapFrom<Artist>.MapFrom(Profile profile) => profile
-        .CreateMap<Artist, ArtistDto>()
-        .ForMember(dst => dst.LetterAvatar, opts => opts.MapFrom(src => src.GetLetterAvatar()))
-        .ForMember(dst => dst.YearString, opts => opts.MapFrom(src => src.GetYearString()))
-        .ForMember(dst => dst.Location, opts => opts.MapFrom(src => src.GetLocation()));
-
-
 }

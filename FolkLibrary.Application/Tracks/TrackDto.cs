@@ -1,8 +1,6 @@
-﻿using FolkLibrary.Application.Interfaces;
+﻿namespace FolkLibrary.Tracks;
 
-namespace FolkLibrary.Tracks;
-
-public sealed class TrackDto : IDocument, IMapFrom<Track>
+public sealed class TrackDto : IDocument
 {
     public required string Id { get; init; }
 

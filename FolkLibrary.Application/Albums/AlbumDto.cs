@@ -1,16 +1,20 @@
-﻿using AutoMapper;
-using FolkLibrary.Application.Interfaces;
-using FolkLibrary.Tracks;
+﻿using FolkLibrary.Tracks;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FolkLibrary.Albums;
 
-public sealed class AlbumDto : IDocument, IMapFrom<Album>
+public sealed class AlbumDto : IDocument
 {
     public required string Id { get; init; }
 
     public required string Name { get; init; }
 
     public string? Description { get; init; }
+
+    [MemberNotNullWhen(true, nameof(TracksContributedByArtist))]
+    public bool IsCompilation { get; set; }
+
+    public List<int>? TracksContributedByArtist { get; set; }
 
     public int? Year { get; init; }
 
@@ -27,8 +31,4 @@ public sealed class AlbumDto : IDocument, IMapFrom<Album>
     public bool IsIncomplete { get; init; }
 
     public required List<TrackDto> Tracks { get; init; }
-
-    void IMapFrom<Album>.MapFrom(Profile profile) => profile
-        .CreateMap<Album, AlbumDto>()
-        .ForMember(dst => dst.YearString, opts => opts.MapFrom(src => src.GetYearString()));
 }

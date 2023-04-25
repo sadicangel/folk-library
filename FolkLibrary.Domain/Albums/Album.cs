@@ -7,10 +7,11 @@ namespace FolkLibrary.Albums;
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public sealed class Album : Entity
 {
+    public bool IsCompilation { get; init; }
 
-    public required TimeSpan Duration { get; set; }
+    public TimeSpan Duration { get => Tracks.Aggregate(TimeSpan.Zero, (p, c) => p + c.Duration); }
 
-    public bool IsIncomplete { get; set; }
+    public bool IsIncomplete { get => Tracks.Count == 0 || Tracks.Count != Tracks.Max(t => t.Number); }
 
     public int ArtistCount { get => Artists.Count; }
 

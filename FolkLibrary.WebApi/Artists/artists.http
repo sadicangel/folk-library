@@ -1,5 +1,6 @@
 @url = https://localhost:59170/api/artist/
 
+###
 # @name getArtists
 GET {{url}}
     ?country=PT
@@ -33,15 +34,14 @@ Content-Type: application/json
     "isAbroad": false
 }
 
-###
-
-# @name getArtistById
 @artistId = {{createArtist.response.body.$.id}}
+
+###
+# @name getArtistById
 GET {{url}}{{artistId}}
 
 ###
 # @name updateArtist
-@artistId = {{createArtist.response.body.$.id}}
 PUT {{url}}{{artistId}}
 Content-Type: application/json
 
@@ -52,5 +52,4 @@ Content-Type: application/json
 
 ###
 # @name deleteArtist
-@artistId = {{createArtist.response.body.$.id}}
 DELETE {{url}}{{artistId}}

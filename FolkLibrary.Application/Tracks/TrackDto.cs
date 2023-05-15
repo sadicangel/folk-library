@@ -12,7 +12,7 @@ public sealed class TrackDto : IDocument
 
     public bool IsYearUncertain { get; set; }
 
-    public required List<string> Genres { get; init; }
+    public required HashSet<string> Genres { get; init; }
 
     public required int Number { get; set; }
 

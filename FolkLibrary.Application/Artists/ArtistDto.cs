@@ -20,7 +20,7 @@ public sealed class ArtistDto : IDocument
 
     public required string YearString { get; init; }
 
-    public required List<string> Genres { get; init; }
+    public required HashSet<string> Genres { get; init; }
 
     public required string Country { get; init; }
 

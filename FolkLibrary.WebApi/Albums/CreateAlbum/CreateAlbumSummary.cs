@@ -24,7 +24,7 @@ public sealed class CreateAlbumSummary : Summary<CreateAlbumEndpoint>
                     Number = 1,
                     Description = "Optional track 2 description",
                     Duration = TimeSpan.FromMinutes(1),
-                    Genres = new List<string> { "Folk" },
+                    Genres = new HashSet<string> { "Folk" },
                     Year = 1999,
                 },
                 new CreateTrackDto
@@ -33,7 +33,7 @@ public sealed class CreateAlbumSummary : Summary<CreateAlbumEndpoint>
                     Number = 2,
                     Description = "Optional track 1 description",
                     Duration = TimeSpan.FromMinutes(2),
-                    Genres = new List<string> { "Folk" },
+                    Genres = new HashSet<string> { "Folk" },
                     Year = 1999,
                 }
             }
@@ -43,7 +43,7 @@ public sealed class CreateAlbumSummary : Summary<CreateAlbumEndpoint>
             Id = Guid.Empty.ToString(),
             Name = "Album Name",
             Description = "Optional album description",
-            Genres = new List<string> { "Folk" },
+            Genres = new HashSet<string> { "Folk" },
             Year = 1999,
             YearString = "1999",
             Duration = TimeSpan.FromMinutes(3),
@@ -57,7 +57,7 @@ public sealed class CreateAlbumSummary : Summary<CreateAlbumEndpoint>
                     Number = 1,
                     Description = "Optional track 2 description",
                     Duration = TimeSpan.FromMinutes(1),
-                    Genres = new List<string> { "Folk" },
+                    Genres = new HashSet<string> { "Folk" },
                     Year = 1999,
                 },
                 new TrackDto
@@ -67,7 +67,7 @@ public sealed class CreateAlbumSummary : Summary<CreateAlbumEndpoint>
                     Number = 2,
                     Description = "Optional track 1 description",
                     Duration = TimeSpan.FromMinutes(2),
-                    Genres = new List<string> { "Folk" },
+                    Genres = new HashSet<string> { "Folk" },
                     Year = 1999,
                 }
             }

@@ -3,7 +3,6 @@ using FolkLibrary.Artists;
 using FolkLibrary.Database;
 using FolkLibrary.Repositories;
 using FolkLibrary.Tracks;
-using Mapster;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
@@ -104,7 +103,7 @@ internal sealed class FolkDataLoader
 
         await _dbContext.SaveChangesAsync();
 
-        var artistDtos = artistsByName.Values.Select(a => a.Artist).Adapt<List<ArtistDto>>();
+        var artistDtos = artistsByName.Values.Select(a => a.Artist.ToArtistDto());
         foreach (var artist in artistDtos)
             foreach (var album in artist.Albums.Where(a => a.IsCompilation))
                 album.TracksContributedByArtist = albumTracksByArtistId[album.Id][artist.Id];

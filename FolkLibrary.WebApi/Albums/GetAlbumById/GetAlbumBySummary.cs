@@ -15,7 +15,7 @@ public sealed class GetAlbumBySummary : Summary<GetAlbumByIdEndpoint>
             Id = Guid.Empty.ToString(),
             Name = "Album Name",
             Description = "Optional album description",
-            Genres = new List<string> { "Folk" },
+            Genres = new HashSet<string> { "Folk" },
             Year = 1999,
             YearString = "1999",
             Duration = TimeSpan.FromMinutes(3),
@@ -29,7 +29,7 @@ public sealed class GetAlbumBySummary : Summary<GetAlbumByIdEndpoint>
                     Number = 1,
                     Description = "Optional track 2 description",
                     Duration = TimeSpan.FromMinutes(1),
-                    Genres = new List<string> { "Folk" },
+                    Genres = new HashSet<string> { "Folk" },
                     Year = 1999,
                 },
                 new TrackDto
@@ -39,7 +39,7 @@ public sealed class GetAlbumBySummary : Summary<GetAlbumByIdEndpoint>
                     Number = 2,
                     Description = "Optional track 1 description",
                     Duration = TimeSpan.FromMinutes(2),
-                    Genres = new List<string> { "Folk" },
+                    Genres = new HashSet<string> { "Folk" },
                     Year = 1999,
                 }
             }

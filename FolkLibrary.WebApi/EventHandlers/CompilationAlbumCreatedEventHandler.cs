@@ -1,10 +1,8 @@
 ﻿using Ardalis.Specification;
 using FastEndpoints;
-using FolkLibrary.Albums;
 using FolkLibrary.Albums.Events;
 using FolkLibrary.Artists;
 using FolkLibrary.Repositories;
-using Mapster;
 
 namespace FolkLibrary.EventHandlers;
 
@@ -31,7 +29,7 @@ public sealed class CompilationAlbumCreatedEventHandler : IEventHandler<Compilat
 
         artistDtos.ForEach(artist =>
         {
-            var albumDto = album.Adapt<AlbumDto>();
+            var albumDto = album.ToAlbumDto();
             albumDto.IsCompilation = true;
             albumDto.TracksContributedByArtist = @event.TracksByArtistId[artist.Id];
             artist.Albums.Add(albumDto);

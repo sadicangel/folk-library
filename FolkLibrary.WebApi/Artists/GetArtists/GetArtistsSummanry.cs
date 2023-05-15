@@ -28,7 +28,7 @@ public sealed class GetArtistsSummanry : Summary<GetArtistsEndpoint>
                 ShortName = "Artist Short Name",
                 LetterAvatar = "ASN",
                 Description = "Optional artist description",
-                Genres = new List<string> { "Folk" },
+                Genres = new HashSet<string> { "Folk" },
                 Year = 1999,
                 YearString = "1999?",
                 IsYearUncertain = true,

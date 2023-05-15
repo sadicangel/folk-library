@@ -16,10 +16,10 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddFastEndpoints();
-builder.Services.AddSwaggerDoc(opts =>
+builder.Services.SwaggerDocument(opts => opts.DocumentSettings = settings =>
 {
-    opts.Title = "Folk Library API";
-    opts.Version = "v1";
+    settings.Title = "Folk Library API";
+    settings.Version = "v1";
 });
 
 var app = builder.Build();

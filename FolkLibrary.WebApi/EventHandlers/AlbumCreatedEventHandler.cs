@@ -1,8 +1,6 @@
 ﻿using FastEndpoints;
-using FolkLibrary.Albums;
 using FolkLibrary.Albums.Events;
 using FolkLibrary.Repositories;
-using Mapster;
 
 namespace FolkLibrary.EventHandlers;
 public sealed class AlbumCreatedEventHandler : IEventHandler<AlbumCreatedEvent>
@@ -22,7 +20,7 @@ public sealed class AlbumCreatedEventHandler : IEventHandler<AlbumCreatedEvent>
 
         var artistDto = await artistViewRepository.GetByIdAsync(@event.ArtistId, cancellationToken) ?? throw new FolkLibraryException($"{@event.ArtistId} not found");
         var album = await albumRepository.GetByIdAsync(@event.AlbumId, cancellationToken) ?? throw new FolkLibraryException($"{@event.AlbumId} not found");
-        var albumDto = album.Adapt<AlbumDto>();
+        var albumDto = album.ToAlbumDto();
 
         artistDto.Albums.Add(albumDto);
         await artistViewRepository.UpdateAsync(artistDto, cancellationToken);

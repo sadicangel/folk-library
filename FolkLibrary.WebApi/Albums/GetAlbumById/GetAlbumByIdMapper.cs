@@ -1,6 +1,5 @@
 ﻿using FastEndpoints;
 using FolkLibrary.Repositories;
-using Mapster;
 
 namespace FolkLibrary.Albums.GetAlbumById;
 
@@ -13,6 +12,6 @@ public sealed class GetAlbumByIdMapper : Mapper<GetAlbumByIdRequest, AlbumDto, A
 
     public override Task<AlbumDto> FromEntityAsync(Album? entity, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(entity?.Adapt<AlbumDto>() ?? throw new ArgumentNullException(nameof(entity)));
+        return Task.FromResult(entity?.ToAlbumDto() ?? throw new ArgumentNullException(nameof(entity)));
     }
 }

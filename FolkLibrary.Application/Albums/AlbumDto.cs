@@ -22,7 +22,7 @@ public sealed class AlbumDto : IDocument
 
     public required string YearString { get; init; }
 
-    public required List<string> Genres { get; init; }
+    public required HashSet<string> Genres { get; init; }
 
     public required int TrackCount { get; init; }
 

@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace FolkLibrary.Cli;
+namespace FolkLibrary;
 
 [Verb("copy", HelpText = "Copy albums to a directory.")]
 public sealed class CopyArguments

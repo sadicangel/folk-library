@@ -1,5 +1,5 @@
 ﻿using CommandLine;
-using FolkLibrary.Cli;
+using FolkLibrary;
 
 Parser.Default.ParseArguments<CopyArguments, object>(args)
     .WithParsed<CopyArguments>(CopyHandler.Handle);

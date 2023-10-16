@@ -69,7 +69,7 @@ public sealed class Artist_should : IAsyncLifetime
         var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.Id);
 
         Assert.NotNull(artist);
-        PropertyMatcher.AssertPropertiesMatch(albumCreated.Album, artist.Albums[0]);
+        PropertyMatcher.AssertPropertiesMatch(albumCreated, artist.Albums[0]);
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public sealed class Artist_should : IAsyncLifetime
 
         var artistCreated = _autoFixture.Create<ArtistCreated>();
         var albumCreated = _autoFixture.Create<AlbumCreated>();
-        var albumUpdated = new AlbumUpdated(_autoFixture.Create<Album>() with { Id = albumCreated.Album.Id });
+        var albumUpdated = new AlbumUpdated(_autoFixture.Create<Album>() with { Id = albumCreated.Id });
 
         session.Events.StartStream(artistCreated.Id, artistCreated, albumCreated, albumUpdated);
         await session.SaveChangesAsync();
@@ -104,9 +104,9 @@ public sealed class Artist_should : IAsyncLifetime
         var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.Id);
 
         Assert.NotNull(artist);
-        PropertyMatcher.AssertPropertiesMatch(albumCreated.Album, artist.Albums[0]);
+        PropertyMatcher.AssertPropertiesMatch(albumCreated, artist.Albums[0]);
 
-        var albumDeleted = new AlbumDeleted(albumCreated.Album);
+        var albumDeleted = new AlbumDeleted(albumCreated.Id);
 
         await session.Events.AppendOptimistic(artistCreated.Id, albumDeleted);
         await session.SaveChangesAsync();

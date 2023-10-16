@@ -1,8 +1,5 @@
-﻿using FolkLibrary.Albums;
-using FolkLibrary.Artists;
-using FolkLibrary.Database;
-using Humanizer;
-using Microsoft.EntityFrameworkCore;
+﻿using Humanizer;
+using Marten;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System.Data;
@@ -11,19 +8,38 @@ using System.Reflection.Emit;
 
 namespace FolkLibrary.Services;
 
-internal sealed class FolkDataExporter
+public interface IDataExporter
 {
+    Task ExportAsync(string fileName, ExportFormat format, bool overwrite = false);
+}
+
+public enum ExportFormat
+{
+    Xlsx
+}
+
+internal sealed class DataExporter : IDataExporter
+{
+    private readonly IDocumentSession _dbSession;
+
     private static IReadOnlyDictionary<PropertyInfo, Func<Artist, object>> ArtistGetters { get; } = CreatePropertyGetters<Artist>();
     private static IReadOnlyDictionary<PropertyInfo, Func<Album, object>> AlbumGetters { get; } = CreatePropertyGetters<Album>();
-    private readonly FolkDbContext _dbContext;
 
-    public FolkDataExporter(FolkDbContext dbContext)
+    public DataExporter(IDocumentSession dbSession)
     {
-        _dbContext = dbContext;
-
+        _dbSession = dbSession;
     }
 
-    public void WriteXlsx(string fileName, bool overwrite = false)
+    public Task ExportAsync(string fileName, ExportFormat format, bool overwrite = false)
+    {
+        return format switch
+        {
+            ExportFormat.Xlsx => ExportXlsx(fileName, overwrite),
+            _ => throw new NotSupportedException($"{format}"),
+        };
+    }
+
+    private async Task ExportXlsx(string fileName, bool overwrite)
     {
         if (File.Exists(fileName))
         {
@@ -32,7 +48,8 @@ internal sealed class FolkDataExporter
             File.Delete(fileName);
         }
 
-        var artists = _dbContext.Artists.Include(a => a.Albums).OrderBy(a => a.Year).ToList();
+        var streamIds = _dbSession.Events.QueryAllRawEvents().DistinctBy(e => e.StreamId).Select(e => e.StreamId).ToList();
+        var artists = streamIds.Select(id => _dbSession.Events.AggregateStream<Artist>(id) ?? throw new InvalidOperationException($"Missing Artist {id}")).ToList();
 
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using var package = new ExcelPackage(new FileInfo(fileName));
@@ -74,7 +91,7 @@ internal sealed class FolkDataExporter
         FormatColumns(albumSheet, AlbumGetters.Keys, firstRow: 2, firstColumn: 1);
         albumSheet.Cells[albumSheet.Dimension.Address].AutoFitColumns();
 
-        package.Save();
+        await package.SaveAsync();
     }
 
     private static void FormatColumns(ExcelWorksheet sheet, IEnumerable<PropertyInfo> properties, int firstRow, int firstColumn)
@@ -263,7 +280,7 @@ internal sealed class FolkDataExporter
         {
             return property.CanRead
                 && (property.PropertyType.IsValueType || !property.PropertyType.IsGenericType)
-                && property.Name != nameof(Entity.Id);
+                && property.Name != nameof(Artist.Id);
         }
     }
 }

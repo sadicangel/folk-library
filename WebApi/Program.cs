@@ -1,5 +1,4 @@
-using FastEndpoints;
-using FastEndpoints.Swagger;
+using FolkLibrary.Infrastructure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
@@ -11,33 +10,25 @@ builder.Host.UseSerilog((host, opts) => opts.WriteTo.Console().MinimumLevel.Over
 builder.Services.AddSingleton<ISystemClock, SystemClock>();
 builder.Services.AddSingleton<IFileProvider>(services => services.GetRequiredService<IWebHostEnvironment>().ContentRootFileProvider);
 
+builder.Services.AddDomain();
 builder.Services.AddApplication();
 
-builder.Services.AddInfrastructure(builder.Configuration);
-
-builder.Services.AddFastEndpoints();
-builder.Services.SwaggerDocument(opts => opts.DocumentSettings = settings =>
-{
-    settings.Title = "Folk Library API";
-    settings.Version = "v1";
-});
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(opts => opts.SupportNonNullableReferenceTypes());
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.UseFastEndpoints(opts =>
-{
-    opts.Endpoints.Configurator = e => e.AllowAnonymous();
-    opts.Serializer.Options.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault;
-});
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwaggerGen();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-await app.LoadDatabaseData(app.Configuration, overwrite: false);
+app.UseHttpsRedirection();
+
+app.MapArtistEndpoints();
+app.MapAlbumEndpoints();
+
+await app.LoadDatabaseData(overwrite: true);
 
 app.Run();

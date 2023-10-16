@@ -11,7 +11,7 @@ using Weasel.Core;
 
 namespace FolkLibrary.Infrastructure;
 
-public static class ServiceCollectionExtensions
+public static class DependencyInjection
 {
     public static IServiceCollection AddDomain(this IServiceCollection services)
     {
@@ -31,7 +31,8 @@ public static class ServiceCollectionExtensions
             options.Schema.For<Artist>().Identity(a => a.Id).UseOptimisticConcurrency(true);
 
             return options;
-        });
+        })
+            .UseLightweightSessions();
 
         return services;
     }

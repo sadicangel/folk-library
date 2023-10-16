@@ -1,13 +1,10 @@
 ﻿@page "/artists"
-@using FolkLibrary.Albums;
-@using FolkLibrary.Services;
-@using FolkLibrary.Tracks;
 @inject ICountryInfoProvider CountryInfo
 @inject ArtistStateProvider State
 
 <PageTitle>FolkLibrary - Artists</PageTitle>
 
-<MudTable Items="@State.Artists" @bind-SelectedItem="@selectedArtist" OnRowClick="@((TableRowClickEventArgs<ArtistDto> e) => OpenDrawer())" Height="100%" Filter="@Filter" Hover="true" Breakpoint="Breakpoint.Sm" FixedHeader="true" FixedFooter="true" Loading="@(!State.Artists.Any())" LoadingProgressColor="Color.Info">
+<MudTable Items="@State.Artists" @bind-SelectedItem="@selectedArtist" OnRowClick="@((TableRowClickEventArgs<Artist> e) => OpenDrawer())" Height="100%" Filter="@Filter" Hover="true" Breakpoint="Breakpoint.Sm" FixedHeader="true" FixedFooter="true" Loading="@(!State.Artists.Any())" LoadingProgressColor="Color.Info">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Artists</MudText>
         <MudSpacer />
@@ -15,11 +12,11 @@
     </ToolBarContent>
     <HeaderContent>
         <MudTh></MudTh>
-        <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.ShortName)))">Name</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Name)))">Full Name</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Year)))">Year</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Country)))">Country</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortBy="new Func<ArtistDto, object>(x => SortBy(x, nameof(ArtistDto.Location)))">Location</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.ShortName)))">Name</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.Name)))">Full Name</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.Year)))">Year</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.Country)))">Country</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.Location)))">Location</MudTableSortLabel></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Avatar"><MudAvatar Color="Color.Tertiary">@context.LetterAvatar</MudAvatar></MudTd>
@@ -59,7 +56,7 @@
                     <MudTreeViewItem Value="@album.Name" Icon="@(album.IsCompilation ? Icons.Material.Filled.Label : Icons.Material.Filled.LabelImportant)" IconColor="@(album.IsCompilation ? Color.Primary : Color.Secondary)">
                         @foreach (var track in album.Tracks.OrderBy(t => t.Number))
                         {
-                            <MudTreeViewItem Value="@($"{track.Number:D2} {track.Name} ({track.Duration:mm\\:ss}) {(album.TracksContributedByArtist?.Contains(track.Number) ?? false? "\U0001F5F8" : "")}")" />
+                            <MudTreeViewItem Value="@($"{track.Number:D2} {track.Name} ({track.Duration:mm\\:ss})")" />
                         }
                     </MudTreeViewItem>
                 }
@@ -75,22 +72,22 @@
 @code {
     private string searchString = "";
     private bool isOpen = false;
-    private ArtistDto selectedArtist = null!;
+    private Artist selectedArtist = null!;
 
     protected override async Task OnInitializedAsync()
     {
         await State.FetchPageAsync(1, 200);
     }
 
-    private async Task<TableData<ArtistDto>> FetchDataAsync(TableState state)
+    private async Task<TableData<Artist>> FetchDataAsync(TableState state)
     {
-        return new TableData<ArtistDto>
+        return new TableData<Artist>
             {
                 Items = await State.FetchPageAsync(state.Page)
             };
     }
 
-    private bool Filter(ArtistDto artist)
+    private bool Filter(Artist artist)
     {
         if (String.IsNullOrWhiteSpace(searchString))
             return true;
@@ -105,19 +102,19 @@
         return false;
     }
 
-    private object SortBy(ArtistDto artist, string property)
+    private object SortBy(Artist artist, string property)
     {
         switch (property)
         {
-            case nameof(ArtistDto.ShortName):
+            case nameof(Artist.ShortName):
                 return artist.ShortName;
-            case nameof(ArtistDto.Name):
+            case nameof(Artist.Name):
                 return artist.Name;
-            case nameof(ArtistDto.Year):
+            case nameof(Artist.Year):
                 return artist.Year ?? Int32.MaxValue;
-            case nameof(ArtistDto.Country):
+            case nameof(Artist.Country):
                 return artist.Country;
-            case nameof(ArtistDto.Location):
+            case nameof(Artist.Location):
                 return artist.Location;
             default:
                 return artist.Year ?? Int32.MaxValue;

@@ -3,15 +3,9 @@
     "Docker Compose": {
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
-      "composeLaunchAction": "LaunchBrowser",
-      "composeLaunchServiceName": "folklibrary.webapi",
-      "composeLaunchUrl": "{Scheme}://localhost:{ServicePort}/swagger",
       "serviceActions": {
-        "mongodb": "StartWithoutDebugging",
-        "folklibrary.webapi": "StartDebugging",
-        "mongodb.admin": "StartWithoutDebugging",
         "postgres": "StartWithoutDebugging",
-        "postgres.admin": "StartWithoutDebugging",
+        "postgres.admin": "StartWithoutDebugging"
       }
     }
   }

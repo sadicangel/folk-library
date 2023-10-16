@@ -1,11 +1,25 @@
-﻿using FolkLibrary.Artists;
-using FolkLibrary.Interfaces;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Web;
 
 namespace FolkLibrary.Services;
+public interface IFolkHttpClient
+{
+    Task<Artist> GetArtistByIdAsync(Guid artistId);
+    Task<Page<Artist>> GetArtistsAsync(ArtistFilter? filter = null, int? pageIndex = null, int? pageSize = null);
+}
+
+public sealed class ArtistFilter
+{
+    public string? Country { get; init; }
+    public string? District { get; init; }
+    public string? Municipality { get; init; }
+    public string? Parish { get; init; }
+    public int? AfterYear { get; init; }
+    public int? BeforeYear { get; init; }
+}
+
 internal sealed class FolkHttpClient : IFolkHttpClient
 {
     private readonly HttpClient _httpClient;
@@ -15,7 +29,7 @@ internal sealed class FolkHttpClient : IFolkHttpClient
         _httpClient = httpClient;
     }
 
-    public async Task<Page<ArtistDto>> GetArtistsAsync(ArtistFilterDto? filter = null, int? pageIndex = null, int? pageSize = null)
+    public async Task<Page<Artist>> GetArtistsAsync(ArtistFilter? filter = null, int? pageIndex = null, int? pageSize = null)
     {
         var request = new HttpRequestMessage
         {
@@ -29,14 +43,14 @@ internal sealed class FolkHttpClient : IFolkHttpClient
         };
         var response = await _httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<Page<ArtistDto>>();
+        var result = await response.Content.ReadFromJsonAsync<Page<Artist>>();
         return result!;
     }
 
-    public async Task<ArtistDto> GetArtistByIdAsync(Guid artistId)
+    public async Task<Artist> GetArtistByIdAsync(Guid artistId)
     {
         var uri = $"api/artist/{artistId}";
-        var result = await _httpClient.GetFromJsonAsync<ArtistDto>(uri);
+        var result = await _httpClient.GetFromJsonAsync<Artist>(uri);
         return result!;
     }
 }

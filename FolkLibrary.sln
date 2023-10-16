@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Domain\Domain.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Application\Application.csproj", "{7560C877-22F6-4441-BB87-C2C7A83875A8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{2DBF8E1A-A8FE-4D9A-899C-97F9C8E62908}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi", "WebApi\WebApi.csproj", "{AEFADD2A-B6EB-4B28-AB8F-B7BB0074DDD2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp.Server", "BlazorApp\Server\BlazorApp.Server.csproj", "{5DA241B1-720E-4428-85BE-9BBE4B8A36DE}"
@@ -39,10 +37,6 @@ Global
 		{7560C877-22F6-4441-BB87-C2C7A83875A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7560C877-22F6-4441-BB87-C2C7A83875A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7560C877-22F6-4441-BB87-C2C7A83875A8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2DBF8E1A-A8FE-4D9A-899C-97F9C8E62908}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2DBF8E1A-A8FE-4D9A-899C-97F9C8E62908}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2DBF8E1A-A8FE-4D9A-899C-97F9C8E62908}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2DBF8E1A-A8FE-4D9A-899C-97F9C8E62908}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AEFADD2A-B6EB-4B28-AB8F-B7BB0074DDD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AEFADD2A-B6EB-4B28-AB8F-B7BB0074DDD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEFADD2A-B6EB-4B28-AB8F-B7BB0074DDD2}.Release|Any CPU.ActiveCfg = Release|Any CPU

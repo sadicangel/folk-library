@@ -1,18 +1,16 @@
-﻿using FolkLibrary.Artists;
-using FolkLibrary.Interfaces;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace FolkLibrary.Services;
 
 internal sealed class ArtistStateProvider
 {
     private const int PageSize = 20;
-    private readonly HashSet<ArtistDto> _artists = new(new ByIdComparer());
-    private readonly Dictionary<string, ArtistDto> _artistsById = new();
-    private readonly SortedDictionary<int, IReadOnlyList<ArtistDto>> _artistsByPage = new();
+    private readonly HashSet<Artist> _artists = new(new ByIdComparer());
+    private readonly Dictionary<Guid, Artist> _artistsById = new();
+    private readonly SortedDictionary<int, IReadOnlyList<Artist>> _artistsByPage = new();
     private readonly IFolkHttpClient _httpClient;
 
-    public IReadOnlyCollection<ArtistDto> Artists { get => _artists; }
+    public IReadOnlyCollection<Artist> Artists { get => _artists; }
 
     public event Action? StateChanged;
 
@@ -21,9 +19,9 @@ internal sealed class ArtistStateProvider
         _httpClient = httpClient;
     }
 
-    public ArtistDto GetById(string id) => _artistsById[id];
+    public Artist GetById(Guid id) => _artistsById[id];
 
-    public async Task<IEnumerable<ArtistDto>> FetchPageAsync(int index, int size = PageSize)
+    public async Task<IEnumerable<Artist>> FetchPageAsync(int index, int size = PageSize)
     {
         if (!_artistsByPage.TryGetValue(index, out var list))
         {
@@ -34,7 +32,7 @@ internal sealed class ArtistStateProvider
         return list;
     }
 
-    public void Add(ArtistDto artist)
+    public void Add(Artist artist)
     {
         if (_artists.Add(artist))
         {
@@ -43,7 +41,7 @@ internal sealed class ArtistStateProvider
         }
     }
 
-    public void AddRange(IEnumerable<ArtistDto> artists)
+    public void AddRange(IEnumerable<Artist> artists)
     {
         artists = artists.Where(_artists.Add);
         foreach (var artist in artists)
@@ -52,7 +50,7 @@ internal sealed class ArtistStateProvider
             StateChanged?.Invoke();
     }
 
-    public void Remove(ArtistDto artist)
+    public void Remove(Artist artist)
     {
         if (_artists.Remove(artist))
         {
@@ -61,15 +59,15 @@ internal sealed class ArtistStateProvider
         }
     }
 
-    public void Replace(IEnumerable<ArtistDto> artists)
+    public void Replace(IEnumerable<Artist> artists)
     {
         _artists.Clear();
         AddRange(artists);
     }
 }
 
-file sealed class ByIdComparer : IEqualityComparer<ArtistDto>
+file sealed class ByIdComparer : IEqualityComparer<Artist>
 {
-    public bool Equals(ArtistDto? x, ArtistDto? y) => x is null ? y is null : x.Id == y?.Id;
-    public int GetHashCode([DisallowNull] ArtistDto obj) => obj.Id.GetHashCode();
+    public bool Equals(Artist? x, Artist? y) => x is null ? y is null : x.Id == y?.Id;
+    public int GetHashCode([DisallowNull] Artist obj) => obj.Id.GetHashCode();
 }

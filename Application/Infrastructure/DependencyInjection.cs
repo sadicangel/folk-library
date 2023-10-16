@@ -1,16 +1,22 @@
 ﻿using Docker.DotNet;
 using Docker.DotNet.Models;
-using FolkLibrary.Interfaces;
 using FolkLibrary.Services;
+using Marten;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-namespace Microsoft.Extensions.DependencyInjection;
+namespace FolkLibrary.Infrastructure;
 
 public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddSingleton<ICountryInfoProvider, CountryInfoProvider>();
+        services.AddTransient<IDataImporter, DataImporter>();
+        services.AddTransient<IDataExporter, DataExporter>();
+        services.AddTransient<IDataValidator, DataValidator>();
+        services.AddTransient<IMp3Converter, Mp3Converter>();
         return services;
     }
 
@@ -45,5 +51,22 @@ public static class DependencyInjection
         }
         configuration.AddInMemoryCollection(connectionStrings);
         return configuration;
+    }
+
+    public static async Task LoadDatabaseData<THost>(this THost host, bool overwrite = false) where THost : IHost
+    {
+        using var scope = host.Services.CreateScope();
+        var documentStore = scope.ServiceProvider.GetRequiredService<IDocumentStore>();
+        var statistics = await documentStore.Advanced.FetchEventStoreStatistics();
+        var isEmpty = statistics.StreamCount == 0;
+        if (overwrite || isEmpty)
+        {
+            await documentStore.Advanced.ResetAllData();
+            statistics = await documentStore.Advanced.FetchEventStoreStatistics();
+            if (statistics.StreamCount != 0)
+                throw new InvalidOperationException("Could not reset database data");
+            await scope.ServiceProvider.GetRequiredService<IDataImporter>().ImportAsync("D:/Music/Folk");
+            await scope.ServiceProvider.GetRequiredService<IDataValidator>().ValidateAsync();
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+﻿using Generator.Equals;
 
 namespace FolkLibrary;
 
@@ -14,6 +14,6 @@ public sealed record class Artist(
     string? District,
     string? Municipality,
     string? Parish,
-    ImmutableHashSet<string> Genres,
-    ImmutableHashSet<Album> Albums
+    [property: UnorderedEquality] List<string> Genres,
+    [property: UnorderedEquality] List<Album> Albums
 );

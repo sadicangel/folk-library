@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+﻿using Generator.Equals;
 
 namespace FolkLibrary;
 
@@ -11,6 +11,6 @@ public sealed record class Album(
     bool IsCompilation,
     bool IsIncomplete,
     TimeSpan Duration,
-    ImmutableHashSet<string> Genres,
-    ImmutableHashSet<Track> Tracks
+    [property: UnorderedEquality] List<string> Genres,
+    [property: UnorderedEquality] List<Track> Tracks
 );

@@ -1,8 +1,9 @@
-﻿using System.Collections.Immutable;
+﻿using Generator.Equals;
 
 namespace FolkLibrary;
 
-public sealed record class Track(
+[Equatable]
+public sealed partial record class Track(
     Guid Id,
     string Name,
     int Number,
@@ -10,5 +11,5 @@ public sealed record class Track(
     int? Year,
     bool IsYearUncertain,
     TimeSpan Duration,
-    ImmutableHashSet<string> Genres
+    [property: UnorderedEquality] List<string> Genres
 );

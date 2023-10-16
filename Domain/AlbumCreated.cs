@@ -2,10 +2,9 @@
 
 public sealed record class AlbumCreated(Album Album)
 {
-    public Album Apply() => Album;
-
-    public Artist Apply(Artist artist) => artist with
+    public Artist Apply(Artist artist)
     {
-        Albums = artist.Albums.Add(Album)
-    };
+        artist.Albums.Add(Album);
+        return artist;
+    }
 }

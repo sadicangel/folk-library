@@ -11,9 +11,11 @@ public sealed record class PostgresOptions(
     [property: Required, Range(1, 65535)] int Port)
     : IHasConfigurationKey
 {
-    public static string ConfigurationSectionKey { get => "Postgres"; }
-
     private string? _connectionString;
+
+    public PostgresOptions() : this("127.0.0.1", "postgres", "postgres", "postgres", 5432) { }
+
+    public static string ConfigurationSectionKey { get => "Postgres"; }
 
     public string ConnectionString
     {
@@ -27,5 +29,14 @@ public sealed record class PostgresOptions(
         }.ConnectionString;
     }
 
-
+    public static PostgresOptions FromConnectionString(string connectionString)
+    {
+        var builder = new NpgsqlConnectionStringBuilder(connectionString);
+        return new PostgresOptions(
+            builder.Host ?? throw new ArgumentException($"Invalid {nameof(Host)}", nameof(connectionString)),
+            builder.Database ?? throw new ArgumentException($"Invalid {nameof(Database)}", nameof(connectionString)),
+            builder.Username ?? throw new ArgumentException($"Invalid {nameof(Username)}", nameof(connectionString)),
+            builder.Password ?? throw new ArgumentException($"Invalid {nameof(Password)}", nameof(connectionString)),
+            builder.Port);
+    }
 }

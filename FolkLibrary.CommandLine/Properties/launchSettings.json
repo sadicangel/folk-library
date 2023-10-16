@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "FolkLibrary.Cli": {
+      "commandName": "Project",
+      "commandLineArgs": "copy -s \"D:\\Music\\Folk\" -d \"F:\\\""
+    }
+  }
+}

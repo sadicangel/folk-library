@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.BlazorApp.Serve
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.BlazorApp.Client", "FolkLibrary.BlazorApp\Client\FolkLibrary.BlazorApp.Client.csproj", "{877EEE9A-F375-4ADF-BA0E-A7060E3DE296}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FolkLibrary.CommandLine", "FolkLibrary.CommandLine\FolkLibrary.CommandLine.csproj", "{80F3EF5C-2E3C-4363-B2D9-31C8DCA52D8F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{877EEE9A-F375-4ADF-BA0E-A7060E3DE296}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{877EEE9A-F375-4ADF-BA0E-A7060E3DE296}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{877EEE9A-F375-4ADF-BA0E-A7060E3DE296}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80F3EF5C-2E3C-4363-B2D9-31C8DCA52D8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80F3EF5C-2E3C-4363-B2D9-31C8DCA52D8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80F3EF5C-2E3C-4363-B2D9-31C8DCA52D8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80F3EF5C-2E3C-4363-B2D9-31C8DCA52D8F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

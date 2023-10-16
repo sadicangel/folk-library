@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>FolkLibrary</RootNamespace>
+    <AssemblyName>FolkLibrary.$(MSBuildProjectName)</AssemblyName>
     <UserSecretsId>eddc3195-e2ea-4ebe-8208-ac4550529069</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
@@ -24,8 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FolkLibrary.Application\FolkLibrary.Application.csproj" />
-    <ProjectReference Include="..\FolkLibrary.Infrastructure\FolkLibrary.Infrastructure.csproj" />
+    <ProjectReference Include="..\Application\Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

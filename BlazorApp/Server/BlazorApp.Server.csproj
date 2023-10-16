@@ -3,8 +3,9 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <RootNamespace>FolkLibrary</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>FolkLibrary</RootNamespace>
+    <AssemblyName>FolkLibrary.$(MSBuildProjectName)</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Client\FolkLibrary.BlazorApp.Client.csproj" />
+    <ProjectReference Include="..\Client\BlazorApp.Client.csproj" />
   </ItemGroup>
 
 

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace FolkLibrary.Infrastructure;
 
-public static class DependencyInjection
+public static class ApplicationServices
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
@@ -17,6 +17,7 @@ public static class DependencyInjection
         services.AddTransient<IDataExporter, DataExporter>();
         services.AddTransient<IDataValidator, DataValidator>();
         services.AddTransient<IMp3Converter, Mp3Converter>();
+        services.AddMediatR(opts => opts.RegisterServicesFromAssemblyContaining(typeof(ApplicationServices)));
         return services;
     }
 

@@ -11,7 +11,7 @@ using Weasel.Core;
 
 namespace FolkLibrary.Infrastructure;
 
-public static class DependencyInjection
+public static class DomainServices
 {
     public static IServiceCollection AddDomain(this IServiceCollection services)
     {

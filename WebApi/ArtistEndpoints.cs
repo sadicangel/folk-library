@@ -1,18 +1,36 @@
-﻿namespace FolkLibrary.Infrastructure;
+﻿using DotNext;
+using MediatR;
+
+namespace FolkLibrary.Infrastructure;
 
 public static class ArtistEndpoints
 {
     public static IEndpointRouteBuilder MapArtistEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/artists");
-        group.MapPost("/", CreateArtist);
+        group.MapPost("/", Handle<CreateArtistRequest>);
         group.MapGet("/", GetArtists);
         group.MapGet("/{artistId}", GetArtistById);
         group.MapPut("/{artistId}", UpdateArtist);
         return endpoints;
     }
 
-    private static Task<IResult> CreateArtist() => Task.FromResult(Results.Ok());
+    private static async Task<IResult> Handle<TRequest>(TRequest request, IRequestHandler<TRequest, Result<Unit>> handler, CancellationToken cancellationToken)
+        where TRequest : IRequest<Result<Unit>>
+    {
+        var result = await handler.Handle(request, cancellationToken);
+        return result.Match(
+            ok => Results.Ok(),
+            err => Results.BadRequest(err));
+
+    }
+
+    private static async Task<IResult> Handle<TRequest, TResponse>(TRequest request, IRequestHandler<TRequest, Result<TResponse>> handler, CancellationToken cancellationToken)
+        where TRequest : IRequest<Result<TResponse>>
+    {
+        await handler.Handle(request, cancellationToken);
+        return Results.Ok(request);
+    }
 
     private static Task<IResult> GetArtists() => Task.FromResult(Results.Ok());
 

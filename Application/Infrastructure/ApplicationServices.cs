@@ -1,5 +1,6 @@
 ﻿using Docker.DotNet;
 using Docker.DotNet.Models;
+using FluentValidation;
 using FolkLibrary.Services;
 using Marten;
 using Microsoft.Extensions.Configuration;
@@ -13,11 +14,13 @@ public static class ApplicationServices
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddSingleton<ICountryInfoProvider, CountryInfoProvider>();
+        services.AddSingleton<IUuidProvider, UuidProvider>();
         services.AddTransient<IDataImporter, DataImporter>();
         services.AddTransient<IDataExporter, DataExporter>();
         services.AddTransient<IDataValidator, DataValidator>();
         services.AddTransient<IMp3Converter, Mp3Converter>();
         services.AddMediatR(opts => opts.RegisterServicesFromAssemblyContaining(typeof(ApplicationServices)));
+        services.AddValidatorsFromAssembly(typeof(ApplicationServices).Assembly, ServiceLifetime.Singleton);
         return services;
     }
 

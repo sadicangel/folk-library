@@ -36,7 +36,7 @@ internal sealed class ArtistStateProvider
     {
         if (_artists.Add(artist))
         {
-            _artistsById[artist.Id] = artist;
+            _artistsById[artist.ArtistId] = artist;
             StateChanged?.Invoke();
         }
     }
@@ -45,7 +45,7 @@ internal sealed class ArtistStateProvider
     {
         artists = artists.Where(_artists.Add);
         foreach (var artist in artists)
-            _artistsById[artist.Id] = artist;
+            _artistsById[artist.ArtistId] = artist;
         if (artists.Any())
             StateChanged?.Invoke();
     }
@@ -54,7 +54,7 @@ internal sealed class ArtistStateProvider
     {
         if (_artists.Remove(artist))
         {
-            _artistsById.Remove(artist.Id);
+            _artistsById.Remove(artist.ArtistId);
             StateChanged?.Invoke();
         }
     }
@@ -68,6 +68,6 @@ internal sealed class ArtistStateProvider
 
 file sealed class ByIdComparer : IEqualityComparer<Artist>
 {
-    public bool Equals(Artist? x, Artist? y) => x is null ? y is null : x.Id == y?.Id;
-    public int GetHashCode([DisallowNull] Artist obj) => obj.Id.GetHashCode();
+    public bool Equals(Artist? x, Artist? y) => x is null ? y is null : x.ArtistId == y?.ArtistId;
+    public int GetHashCode([DisallowNull] Artist obj) => obj.ArtistId.GetHashCode();
 }

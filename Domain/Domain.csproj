@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNext" Version="4.14.0" />
     <PackageReference Include="Generator.Equals" Version="3.0.0" />
     <PackageReference Include="Marten" Version="6.2.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />

@@ -3,7 +3,7 @@
 namespace FolkLibrary;
 
 public sealed record class Artist(
-    Guid Id,
+    Guid ArtistId,
     string Name,
     string ShortName,
     string LetterAvatar,

@@ -4,7 +4,7 @@ namespace FolkLibrary;
 
 [Equatable]
 public sealed partial record class Track(
-    Guid Id,
+    Guid TrackId,
     string Name,
     int Number,
     string? Description,

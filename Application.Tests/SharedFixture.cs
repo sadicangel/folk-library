@@ -37,6 +37,7 @@ public sealed class SharedFixture : IAsyncLifetime
             .ConfigureServices(services =>
             {
                 services.AddDomain();
+                services.AddApplication();
                 configure?.Invoke(services);
             }).Build();
 

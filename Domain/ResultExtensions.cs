@@ -4,6 +4,9 @@ namespace FolkLibrary;
 
 public static class ResultExtensions
 {
+    public static Result<TResult> Map<TSource, TResult>(this Result<TSource> result, Func<TSource, TResult> map) =>
+        result.Match(ok => map(ok), static err => new Result<TResult>(err));
+
     public static void Match<T>(this Result<T> result, Action<T> ok, Action<Exception> err)
     {
         if (result.IsSuccessful)

@@ -1,4 +1,5 @@
 ﻿using DotNext;
+using FluentValidation;
 using MediatR;
 
 namespace FolkLibrary.Infrastructure;
@@ -8,33 +9,59 @@ public static class ArtistEndpoints
     public static IEndpointRouteBuilder MapArtistEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/artists");
-        group.MapPost("/", Handle<CreateArtistRequest>);
+        group.MapPost("/", CreateArtist);
         group.MapGet("/", GetArtists);
         group.MapGet("/{artistId}", GetArtistById);
         group.MapPut("/{artistId}", UpdateArtist);
         return endpoints;
     }
 
-    private static async Task<IResult> Handle<TRequest>(TRequest request, IRequestHandler<TRequest, Result<Unit>> handler, CancellationToken cancellationToken)
-        where TRequest : IRequest<Result<Unit>>
+    private static Task<IResult> CreateArtist(
+        CreateArtistCommand command,
+        IValidator<CreateArtistCommand> validator,
+        IRequestHandler<CreateArtistCommand, Result<Guid>> handler,
+        CancellationToken cancellationToken)
     {
-        var result = await handler.Handle(request, cancellationToken);
-        return result.Match(
-            ok => Results.Ok(),
-            err => Results.BadRequest(err));
-
+        return command.HandleAsync(validator, handler, cancellationToken);
     }
 
-    private static async Task<IResult> Handle<TRequest, TResponse>(TRequest request, IRequestHandler<TRequest, Result<TResponse>> handler, CancellationToken cancellationToken)
-        where TRequest : IRequest<Result<TResponse>>
+    private static Task<IResult> GetArtists(
+        string? country,
+        string? district,
+        string? municipality,
+        string? parish,
+        int? afterYear,
+        int? beforeYear,
+        IValidator<GetArtistsCommand> validator,
+        IRequestHandler<GetArtistsCommand, Result<GetArtistsResponse>> handler,
+        CancellationToken cancellationToken)
     {
-        await handler.Handle(request, cancellationToken);
-        return Results.Ok(request);
+        var command = new GetArtistsCommand(country, district, municipality, parish, afterYear, beforeYear);
+
+        return command.HandleAsync(validator, handler, cancellationToken);
     }
 
-    private static Task<IResult> GetArtists() => Task.FromResult(Results.Ok());
+    private static Task<IResult> GetArtistById(
+        Guid artistId,
+        IValidator<GetArtistByIdCommand> validator,
+        IRequestHandler<GetArtistByIdCommand, Result<Optional<Artist>>> handler,
+        CancellationToken cancellationToken)
+    {
+        var command = new GetArtistByIdCommand(artistId);
 
-    private static Task<IResult> GetArtistById() => Task.FromResult(Results.Ok());
+        return command.HandleAsync(validator, handler, cancellationToken);
+    }
 
-    private static Task<IResult> UpdateArtist() => Task.FromResult(Results.Ok());
+    private static Task<IResult> UpdateArtist(
+        Guid artistId,
+        UpdateArtistRequest request,
+        IValidator<UpdateArtistCommand> validator,
+        IRequestHandler<UpdateArtistCommand, Result<Unit>> handler,
+        CancellationToken cancellationToken
+        )
+    {
+        var command = new UpdateArtistCommand(artistId, request);
+
+        return command.HandleAsync(validator, handler, cancellationToken);
+    }
 }

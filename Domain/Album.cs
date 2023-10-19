@@ -3,7 +3,7 @@
 namespace FolkLibrary;
 
 public sealed record class Album(
-    Guid Id,
+    Guid AlbumId,
     string Name,
     string? Description,
     int? Year,

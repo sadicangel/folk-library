@@ -1,7 +1,7 @@
 ﻿namespace FolkLibrary;
 
 public sealed record class ArtistCreated(
-    Guid Id,
+    Guid ArtistId,
     string Name,
     string ShortName,
     string? Description,
@@ -15,7 +15,7 @@ public sealed record class ArtistCreated(
     List<string> Genres)
 {
     public Artist Apply() => new(
-        Id,
+        ArtistId,
         Name,
         ShortName,
         ArtistUtil.GetLetterAvatar(ShortName),

@@ -28,7 +28,7 @@ public static class DomainServices
             options.Connection(provider.GetRequiredService<IOptions<PostgresOptions>>().Value.ConnectionString);
 
             options.Projections.Add<ArtistProjection>(ProjectionLifecycle.Live);
-            options.Schema.For<Artist>().Identity(a => a.Id).UseOptimisticConcurrency(true);
+            options.Schema.For<Artist>().Identity(a => a.ArtistId).UseOptimisticConcurrency(true);
 
             return options;
         })

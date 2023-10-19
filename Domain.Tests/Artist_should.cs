@@ -1,10 +1,9 @@
 ﻿using AutoFixture;
-using FolkLibrary;
 using Marten;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 
-namespace Domain.Tests;
+namespace FolkLibrary;
 
 [Collection(nameof(TestCollection))]
 public sealed class Artist_should : IAsyncLifetime
@@ -31,10 +30,10 @@ public sealed class Artist_should : IAsyncLifetime
 
         var artistCreated = _autoFixture.Create<ArtistCreated>();
 
-        session.Events.StartStream(artistCreated.Id, artistCreated);
+        session.Events.StartStream(artistCreated.ArtistId, artistCreated);
         await session.SaveChangesAsync();
 
-        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.Id);
+        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.ArtistId);
 
         PropertyMatcher.AssertPropertiesMatch(artistCreated, artist);
     }
@@ -47,10 +46,10 @@ public sealed class Artist_should : IAsyncLifetime
         var artistCreated = _autoFixture.Create<ArtistCreated>();
         var artistUpdated = _autoFixture.Create<ArtistUpdated>();
 
-        session.Events.StartStream(artistCreated.Id, artistCreated, artistUpdated);
+        session.Events.StartStream(artistCreated.ArtistId, artistCreated, artistUpdated);
         await session.SaveChangesAsync();
 
-        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.Id);
+        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.ArtistId);
 
         PropertyMatcher.AssertPropertiesMatch(artistUpdated, artist);
     }
@@ -63,10 +62,10 @@ public sealed class Artist_should : IAsyncLifetime
         var artistCreated = _autoFixture.Create<ArtistCreated>();
         var albumCreated = _autoFixture.Create<AlbumCreated>();
 
-        session.Events.StartStream(artistCreated.Id, artistCreated, albumCreated);
+        session.Events.StartStream(artistCreated.ArtistId, artistCreated, albumCreated);
         await session.SaveChangesAsync();
 
-        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.Id);
+        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.ArtistId);
 
         Assert.NotNull(artist);
         PropertyMatcher.AssertPropertiesMatch(albumCreated, artist.Albums[0]);
@@ -79,15 +78,15 @@ public sealed class Artist_should : IAsyncLifetime
 
         var artistCreated = _autoFixture.Create<ArtistCreated>();
         var albumCreated = _autoFixture.Create<AlbumCreated>();
-        var albumUpdated = new AlbumUpdated(_autoFixture.Create<Album>() with { Id = albumCreated.Id });
+        var albumUpdated = _autoFixture.Create<AlbumUpdated>();
 
-        session.Events.StartStream(artistCreated.Id, artistCreated, albumCreated, albumUpdated);
+        session.Events.StartStream(artistCreated.ArtistId, artistCreated, albumCreated, albumUpdated);
         await session.SaveChangesAsync();
 
-        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.Id);
+        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.ArtistId);
 
         Assert.NotNull(artist);
-        PropertyMatcher.AssertPropertiesMatch(albumUpdated.Album, artist.Albums[0]);
+        PropertyMatcher.AssertPropertiesMatch(albumUpdated, artist.Albums[0]);
     }
 
     [Fact]
@@ -98,20 +97,20 @@ public sealed class Artist_should : IAsyncLifetime
         var artistCreated = _autoFixture.Create<ArtistCreated>();
         var albumCreated = _autoFixture.Create<AlbumCreated>();
 
-        session.Events.StartStream(artistCreated.Id, artistCreated, albumCreated);
+        session.Events.StartStream(artistCreated.ArtistId, artistCreated, albumCreated);
         await session.SaveChangesAsync();
 
-        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.Id);
+        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.ArtistId);
 
         Assert.NotNull(artist);
         PropertyMatcher.AssertPropertiesMatch(albumCreated, artist.Albums[0]);
 
-        var albumDeleted = new AlbumDeleted(albumCreated.Id);
+        var albumDeleted = new AlbumDeleted(albumCreated.AlbumId);
 
-        await session.Events.AppendOptimistic(artistCreated.Id, albumDeleted);
+        await session.Events.AppendOptimistic(artistCreated.ArtistId, albumDeleted);
         await session.SaveChangesAsync();
 
-        artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.Id);
+        artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.ArtistId);
 
         Assert.NotNull(artist);
         Assert.Empty(artist.Albums);

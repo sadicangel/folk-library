@@ -280,7 +280,7 @@ internal sealed class DataExporter : IDataExporter
         {
             return property.CanRead
                 && (property.PropertyType.IsValueType || !property.PropertyType.IsGenericType)
-                && property.Name != nameof(Artist.Id);
+                && !property.Name.EndsWith("Id");
         }
     }
 }

@@ -6,18 +6,22 @@ public sealed record class AlbumUpdated(
     string? Description,
     int? Year)
 {
-    public Artist Apply(Artist artist)
+    public Album Apply(Album aggregate)
     {
-        var index = artist.Albums.FindIndex(a => a.AlbumId == AlbumId);
-        if (index >= 0)
+        return aggregate with
         {
-            artist.Albums[index] = artist.Albums[index] with
-            {
-                Name = Name,
-                Description = Description,
-                Year = Year
-            };
-        }
-        return artist;
+            Name = Name,
+            Description = Description,
+            Year = Year,
+            IsYearUncertain = Year is null,
+        };
+    }
+
+    public Artist Apply(Artist aggregate)
+    {
+        var index = aggregate.Albums.FindIndex(a => a.AlbumId == AlbumId);
+        if (index >= 0)
+            aggregate.Albums[index] = Apply(aggregate.Albums[index]);
+        return aggregate;
     }
 }

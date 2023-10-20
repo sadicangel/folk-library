@@ -5,24 +5,21 @@ public sealed record class AlbumCreated(
     string Name,
     string? Description,
     int? Year,
-    bool IsCompilation,
-    List<string> Genres,
     List<Track> Tracks)
 {
-    public Artist Apply(Artist artist)
+    public Album Create()
     {
-        artist.Albums.Add(new Album(
+        return new Album(
             AlbumId: AlbumId,
             Name: Name,
             Description: Description,
             Year: Year,
             IsYearUncertain: Year is null,
-            IsCompilation: IsCompilation,
+            IsCompilation: false,
             IsIncomplete: Tracks.Count == 0 || Tracks.Max(t => t.Number) != Tracks.Count,
             Duration: Tracks.Count == 0 ? TimeSpan.Zero : Tracks.Aggregate(TimeSpan.Zero, (p, c) => p + c.Duration),
-            Genres: Genres,
+            Artists: new List<Guid>(),
             Tracks: Tracks
-        ));
-        return artist;
+        );
     }
 }

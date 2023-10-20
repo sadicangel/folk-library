@@ -7,14 +7,9 @@ public sealed record class ArtistCreated(
     string? Description,
     int? Year,
     bool IsYearUncertain,
-    bool IsAbroad,
-    string Country,
-    string? District,
-    string? Municipality,
-    string? Parish,
-    List<string> Genres)
+    Location Location)
 {
-    public Artist Apply() => new(
+    public Artist Create() => new(
         ArtistId,
         Name,
         ShortName,
@@ -23,13 +18,8 @@ public sealed record class ArtistCreated(
         Year,
         IsYearUncertain,
         ArtistUtil.GetYearString(Year, IsYearUncertain),
-        IsAbroad,
-        Country,
-        District,
-        Municipality,
-        Parish,
-        ArtistUtil.GetLocation(District, Municipality, Parish),
-        Genres,
+        IsAbroad: Location.CountryCode is not "PT",
+        Location,
         new List<Album>());
 }
 
@@ -71,19 +61,19 @@ file static class ArtistUtil
         }
     }
 
-    public static string GetLocation(string? district, string? municipality, string? parish)
-    {
-        return string.Join(", ", GetLocationParts(district, municipality, parish));
+    //public static string GetLocation(string? district, string? municipality, string? parish)
+    //{
+    //    return string.Join(", ", GetLocationParts(district, municipality, parish));
 
-        static IEnumerable<string> GetLocationParts(string? district, string? municipality, string? parish)
-        {
-            if (!string.IsNullOrWhiteSpace(district))
-                yield return district;
-            if (!string.IsNullOrWhiteSpace(municipality))
-                yield return municipality;
-            if (!string.IsNullOrWhiteSpace(parish))
-                yield return parish;
+    //    static IEnumerable<string> GetLocationParts(string? district, string? municipality, string? parish)
+    //    {
+    //        if (!string.IsNullOrWhiteSpace(district))
+    //            yield return district;
+    //        if (!string.IsNullOrWhiteSpace(municipality))
+    //            yield return municipality;
+    //        if (!string.IsNullOrWhiteSpace(parish))
+    //            yield return parish;
 
-        }
-    }
+    //    }
+    //}
 }

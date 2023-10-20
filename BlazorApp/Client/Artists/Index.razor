@@ -15,7 +15,6 @@
         <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.ShortName)))">Name</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.Name)))">Full Name</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.Year)))">Year</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.Country)))">Country</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.Location)))">Location</MudTableSortLabel></MudTh>
     </HeaderContent>
     <RowTemplate>
@@ -23,7 +22,7 @@
         <MudTd DataLabel="Name">@context.ShortName</MudTd>
         <MudTd DataLabel="FullName">@context.Name</MudTd>
         <MudTd DataLabel="Year">@context.YearString</MudTd>
-        <MudTd DataLabel="Country"><MudImage Height="24" Src="@GetCountryImageUrl(context.Country)" Alt="@CountryInfo.GetCountryName(context.Country)" /></MudTd>
+        <MudTd DataLabel="Country"><MudImage Height="24" Src="@GetCountryImageUrl(context.Location.CountryCode)" Alt="context.Location.CountryName" /></MudTd>
         <MudTd DataLabel="Location">@context.Location</MudTd>
     </RowTemplate>
 </MudTable>
@@ -95,9 +94,7 @@
             return true;
         if (artist.ShortName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (artist.Country.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (artist.Location.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (artist.Location.CountryName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
         return false;
     }
@@ -112,8 +109,6 @@
                 return artist.Name;
             case nameof(Artist.Year):
                 return artist.Year ?? Int32.MaxValue;
-            case nameof(Artist.Country):
-                return artist.Country;
             case nameof(Artist.Location):
                 return artist.Location;
             default:

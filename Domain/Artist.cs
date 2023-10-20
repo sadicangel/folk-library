@@ -12,11 +12,6 @@ public sealed record class Artist(
     bool IsYearUncertain,
     string YearString,
     bool IsAbroad,
-    string Country,
-    string? District,
-    string? Municipality,
-    string? Parish,
-    string Location,
-    [property: UnorderedEquality] List<string> Genres,
+    Location Location,
     [property: UnorderedEquality] List<Album> Albums
 );

@@ -7,14 +7,13 @@ namespace FolkLibrary;
 
 public sealed record class UpdateAlbumRequest(string Name, string? Description, int? Year);
 
-public sealed record class UpdateAlbumCommand(Guid AlbumId, List<Guid> ArtistIds, UpdateAlbumRequest Request) : IRequest<Result<Unit>>;
+public sealed record class UpdateAlbumCommand(Guid AlbumId, UpdateAlbumRequest Request) : IRequest<Result<Unit>>;
 
 public sealed class UpdateAlbumCommandValidator : AbstractValidator<UpdateAlbumCommand>
 {
     public UpdateAlbumCommandValidator()
     {
         RuleFor(x => x.AlbumId).NotEmpty();
-        RuleFor(x => x.ArtistIds).NotEmpty();
         RuleFor(x => x.Request).NotEmpty().ChildRules(v =>
         {
             v.RuleFor(x => x.Name).NotEmpty();
@@ -34,14 +33,20 @@ public sealed class UpdateAlbumCommandHandler : IRequestHandler<UpdateAlbumComma
 
     public async Task<Result<Unit>> Handle(UpdateAlbumCommand request, CancellationToken cancellationToken)
     {
+        var album = await _documentSession.Events.AggregateStreamAsync<Album>(request.AlbumId, token: cancellationToken);
+        if (album is null)
+            return new Result<Unit>(new FolkLibraryException($"Album {request.AlbumId} does not exist"));
+
         var albumUpdated = new AlbumUpdated(
             AlbumId: request.AlbumId,
             Name: request.Request.Name,
             Description: request.Request.Description,
             Year: request.Request.Year);
 
-        foreach (var artistId in request.ArtistIds)
-            await _documentSession.Events.AppendOptimistic(artistId, cancellationToken, albumUpdated);
+        await _documentSession.Events.AppendOptimistic(request.AlbumId, albumUpdated);
+
+        foreach (var artistId in album.Artists)
+            await _documentSession.Events.AppendOptimistic(artistId, albumUpdated);
 
         await _documentSession.SaveChangesAsync(cancellationToken);
 

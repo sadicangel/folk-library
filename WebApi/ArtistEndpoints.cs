@@ -26,7 +26,8 @@ public static class ArtistEndpoints
     }
 
     private static Task<IResult> GetArtists(
-        string? country,
+        string? countryCode,
+        string? countryName,
         string? district,
         string? municipality,
         string? parish,
@@ -36,7 +37,7 @@ public static class ArtistEndpoints
         IRequestHandler<GetArtistsCommand, Result<GetArtistsResponse>> handler,
         CancellationToken cancellationToken)
     {
-        var command = new GetArtistsCommand(country, district, municipality, parish, afterYear, beforeYear);
+        var command = new GetArtistsCommand(countryCode, countryName, district, municipality, parish, afterYear, beforeYear);
 
         return command.HandleAsync(validator, handler, cancellationToken);
     }
@@ -54,13 +55,13 @@ public static class ArtistEndpoints
 
     private static Task<IResult> UpdateArtist(
         Guid artistId,
-        UpdateArtistRequest request,
-        IValidator<UpdateArtistCommand> validator,
-        IRequestHandler<UpdateArtistCommand, Result<Unit>> handler,
+        UpdateArtistInfoRequest request,
+        IValidator<UpdateArtistInfoCommand> validator,
+        IRequestHandler<UpdateArtistInfoCommand, Result<Unit>> handler,
         CancellationToken cancellationToken
         )
     {
-        var command = new UpdateArtistCommand(artistId, request);
+        var command = new UpdateArtistInfoCommand(artistId, request);
 
         return command.HandleAsync(validator, handler, cancellationToken);
     }

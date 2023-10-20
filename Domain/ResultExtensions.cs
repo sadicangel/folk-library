@@ -19,4 +19,21 @@ public static class ResultExtensions
     {
         return result.IsSuccessful ? ok(result.Value) : err(result.Error);
     }
+
+    public static T Unwrap<T>(this Result<T> result) => result.IsSuccessful ? result.Value : throw result.Error;
+
+    public static async Task<T> UnwrapAsync<T>(this Task<Result<T>> resultTask) => Unwrap(await resultTask);
+
+    public static void Match<T>(this Optional<T> option, Action<T> some, Action none)
+    {
+        if (option)
+            some(option.Value);
+        else
+            none();
+    }
+
+    public static TResult Match<T, TResult>(this Optional<T> option, Func<T, TResult> some, Func<TResult> none)
+    {
+        return option ? some(option.Value) : none();
+    }
 }

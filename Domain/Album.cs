@@ -11,6 +11,6 @@ public sealed record class Album(
     bool IsCompilation,
     bool IsIncomplete,
     TimeSpan Duration,
-    [property: UnorderedEquality] List<string> Genres,
+    [property: UnorderedEquality] List<Guid> Artists,
     [property: UnorderedEquality] List<Track> Tracks
 );

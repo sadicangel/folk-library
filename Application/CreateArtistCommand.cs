@@ -12,23 +12,18 @@ public sealed record class CreateArtistCommand(
     string? Description,
     int? Year,
     bool IsYearUncertain,
-    bool IsAbroad,
-    string Country,
-    string? District,
-    string? Municipality,
-    string? Parish,
-    List<string> Genres) : IRequest<Result<Guid>>;
+    Location Location
+)
+    : IRequest<Result<Guid>>;
 
 public sealed class CreateArtistCommandValidator : AbstractValidator<CreateArtistCommand>
 {
-    public CreateArtistCommandValidator()
+    public CreateArtistCommandValidator(IValidator<Location> locationValidator)
     {
         RuleFor(r => r.Name).NotEmpty();
         RuleFor(r => r.ShortName).NotEmpty();
         RuleFor(r => r.Year).InclusiveBetween(1900, 2100).When(r => r.Year is not null);
-        RuleFor(r => r.IsAbroad).Must(v => v is true).When(r => r.Country is not "PT");
-        RuleFor(r => r.Country).NotEmpty();
-        RuleFor(r => r.Genres).NotEmpty();
+        RuleFor(r => r.Location).NotEmpty().SetValidator(locationValidator);
     }
 }
 
@@ -48,18 +43,14 @@ public sealed class CreateArtistCommandHandler : IRequestHandler<CreateArtistCom
     {
         var artistId = await _uuidProvider.ProvideUuidAsync(cancellationToken);
         var artisCreated = new ArtistCreated(
-            artistId,
-            request.Name,
-            request.ShortName,
-            request.Description,
-            request.Year,
-            request.Year is null,
-            request.IsAbroad,
-            request.Country,
-            request.District,
-            request.Municipality,
-            request.Parish,
-            request.Genres);
+            ArtistId: artistId,
+            Name: request.Name,
+            ShortName: request.ShortName,
+            Description: request.Description,
+            Year: request.Year,
+            IsYearUncertain: request.IsYearUncertain,
+            Location: request.Location);
+
         _documentSession.Events.StartStream(artistId, artisCreated);
         await _documentSession.SaveChangesAsync(cancellationToken);
         return artistId;

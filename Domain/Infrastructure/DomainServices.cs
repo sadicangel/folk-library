@@ -1,5 +1,7 @@
-﻿using Marten;
+﻿using FluentValidation;
+using Marten;
 using Marten.Events.Projections;
+using Marten.Services.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -22,17 +24,25 @@ public static class DomainServices
             var options = new StoreOptions
             {
                 DatabaseSchemaName = "public",
-                AutoCreateSchemaObjects = AutoCreate.All
+                AutoCreateSchemaObjects = AutoCreate.All,
             };
 
             options.Connection(provider.GetRequiredService<IOptions<PostgresOptions>>().Value.ConnectionString);
 
-            options.Projections.Add<ArtistProjection>(ProjectionLifecycle.Live);
+            options.UseDefaultSerialization(
+                serializerType: SerializerType.SystemTextJson,
+                enumStorage: EnumStorage.AsString);
+
+            options.Projections.Add<ArtistProjection>(ProjectionLifecycle.Inline);
             options.Schema.For<Artist>().Identity(a => a.ArtistId).UseOptimisticConcurrency(true);
+
+            options.Projections.Add<AlbumProjection>(ProjectionLifecycle.Inline);
+            options.Schema.For<Album>().Identity(a => a.AlbumId).UseOptimisticConcurrency(true);
 
             return options;
         })
             .UseLightweightSessions();
+        services.AddValidatorsFromAssembly(typeof(DomainServices).Assembly, ServiceLifetime.Singleton);
 
         return services;
     }

@@ -11,7 +11,6 @@ public static class AlbumEndpoints
         var group = endpoints.MapGroup("/api/albums");
         group.MapPost("/", CreateAlbum);
         group.MapPut("/{albumId}", UpdateAlbum);
-        group.MapDelete("/{albumId}", DeleteAlbum);
         return endpoints;
     }
 
@@ -26,26 +25,12 @@ public static class AlbumEndpoints
 
     private static Task<IResult> UpdateAlbum(
         Guid albumId,
-        List<Guid> artistId,
         UpdateAlbumRequest request,
         IValidator<UpdateAlbumCommand> validator,
         IRequestHandler<UpdateAlbumCommand, Result<Unit>> handler,
         CancellationToken cancellationToken)
     {
-        var command = new UpdateAlbumCommand(albumId, artistId, request);
-
-        return command.HandleAsync(validator, handler, cancellationToken);
-    }
-
-
-    private static Task<IResult> DeleteAlbum(
-        Guid albumId,
-        List<Guid> artistId,
-        IValidator<DeleteAlbumCommand> validator,
-        IRequestHandler<DeleteAlbumCommand, Result<Unit>> handler,
-        CancellationToken cancellationToken)
-    {
-        var command = new DeleteAlbumCommand(albumId, artistId);
+        var command = new UpdateAlbumCommand(albumId, request);
 
         return command.HandleAsync(validator, handler, cancellationToken);
     }

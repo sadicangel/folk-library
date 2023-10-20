@@ -1,5 +1,6 @@
 ﻿using AutoFixture;
 using Marten;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 
@@ -11,6 +12,7 @@ public sealed class Artist_should : IAsyncLifetime
     private readonly SharedFixture _sharedFixture;
     private readonly Fixture _autoFixture;
     private IHost _host = default!;
+    private IMediator _mediator = default!;
 
     public Artist_should(SharedFixture sharedFixture)
     {
@@ -19,98 +21,156 @@ public sealed class Artist_should : IAsyncLifetime
         _autoFixture.Customize(new ImmutableCollectionsCustomization());
     }
 
-    public async Task InitializeAsync() => _host = await _sharedFixture.CreateHostAsync();
+    public async Task InitializeAsync()
+    {
+        _host = await _sharedFixture.CreateHostAsync();
+        _mediator = _host.Services.GetRequiredService<IMediator>();
+    }
 
     public Task DisposeAsync() => _host.StopAsync();
 
     [Fact]
     public async Task Create_artist_on_artist_created_event()
     {
+        var createArtist = _autoFixture
+            .Build<CreateArtistCommand>()
+            .With(c => c.Year, () => Random.Shared.Next(1900, 2101))
+            .With(c => c.IsYearUncertain, true)
+            .Create();
+
+        var artistId = await _mediator.Send(createArtist).UnwrapAsync();
+
         var session = _host.Services.GetRequiredService<IDocumentSession>();
+        var artist = await session.Events.AggregateStreamAsync<Artist>(artistId);
 
-        var artistCreated = _autoFixture.Create<ArtistCreated>();
-
-        session.Events.StartStream(artistCreated.ArtistId, artistCreated);
-        await session.SaveChangesAsync();
-
-        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.ArtistId);
-
-        PropertyMatcher.AssertPropertiesMatch(artistCreated, artist);
+        PropertyMatcher.AssertPropertiesMatch(createArtist, artist);
     }
 
     [Fact]
     public async Task Update_artist_on_artist_updated_event()
     {
+        var createArtist = _autoFixture
+            .Build<CreateArtistCommand>()
+            .With(c => c.Year, () => Random.Shared.Next(1900, 2101))
+            .With(c => c.IsYearUncertain, true)
+            .Create();
+
+        var artistId = await _mediator.Send(createArtist).UnwrapAsync();
+
+        var updateArtist = _autoFixture
+            .Build<UpdateArtistInfoRequest>()
+            .With(c => c.Year, () => Random.Shared.Next(1900, 2101))
+            .With(c => c.IsYearUncertain, true)
+            .Create();
+
+        await _mediator.Send(new UpdateArtistInfoCommand(artistId, updateArtist)).UnwrapAsync();
+
         var session = _host.Services.GetRequiredService<IDocumentSession>();
+        var artist = await session.Events.AggregateStreamAsync<Artist>(artistId);
 
-        var artistCreated = _autoFixture.Create<ArtistCreated>();
-        var artistUpdated = _autoFixture.Create<ArtistUpdated>();
-
-        session.Events.StartStream(artistCreated.ArtistId, artistCreated, artistUpdated);
-        await session.SaveChangesAsync();
-
-        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.ArtistId);
-
-        PropertyMatcher.AssertPropertiesMatch(artistUpdated, artist);
+        PropertyMatcher.AssertPropertiesMatch(updateArtist, artist);
     }
 
     [Fact]
     public async Task Update_artist_on_album_created_event()
     {
+        var createArtist = _autoFixture
+            .Build<CreateArtistCommand>()
+            .With(c => c.Year, () => Random.Shared.Next(1900, 2101))
+            .With(c => c.IsYearUncertain, true)
+            .Create();
+
+        var artistId = await _mediator.Send(createArtist).UnwrapAsync();
+
+        var createAlbum = _autoFixture
+            .Build<CreateAlbumCommand>()
+            .With(a => a.Year, () => Random.Shared.Next(1900, 2101))
+            .Create();
+
+        var albumId = await _mediator.Send(createAlbum).UnwrapAsync();
+
+        var addAlbum = new AddAlbumToArtistCommand(artistId, albumId);
+
+        await _mediator.Send(addAlbum).UnwrapAsync();
+
         var session = _host.Services.GetRequiredService<IDocumentSession>();
 
-        var artistCreated = _autoFixture.Create<ArtistCreated>();
-        var albumCreated = _autoFixture.Create<AlbumCreated>();
-
-        session.Events.StartStream(artistCreated.ArtistId, artistCreated, albumCreated);
-        await session.SaveChangesAsync();
-
-        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.ArtistId);
+        var artist = await session.Events.AggregateStreamAsync<Artist>(artistId);
 
         Assert.NotNull(artist);
-        PropertyMatcher.AssertPropertiesMatch(albumCreated, artist.Albums[0]);
+        var actualAlbum = Assert.Single(artist.Albums);
+        PropertyMatcher.AssertPropertiesMatch(createAlbum, actualAlbum);
     }
 
     [Fact]
     public async Task Update_artist_on_album_updated_event()
     {
+        var createArtist = _autoFixture
+            .Build<CreateArtistCommand>()
+            .With(c => c.Year, () => Random.Shared.Next(1900, 2101))
+            .With(c => c.IsYearUncertain, true)
+            .Create();
+
+        var artistId = await _mediator.Send(createArtist).UnwrapAsync();
+
+        var createAlbum = _autoFixture
+            .Build<CreateAlbumCommand>()
+            .With(a => a.Year, () => Random.Shared.Next(1900, 2101))
+            .Create();
+
+        var albumId = await _mediator.Send(createAlbum).UnwrapAsync();
+
+        await _mediator.Send(new AddAlbumToArtistCommand(artistId, albumId)).UnwrapAsync();
+
+        var updateAlbum = _autoFixture
+            .Build<UpdateAlbumRequest>()
+            .With(a => a.Year, () => Random.Shared.Next(1900, 2101))
+            .Create();
+
+        await _mediator.Send(new UpdateAlbumCommand(albumId, updateAlbum)).UnwrapAsync();
+
         var session = _host.Services.GetRequiredService<IDocumentSession>();
 
-        var artistCreated = _autoFixture.Create<ArtistCreated>();
-        var albumCreated = _autoFixture.Create<AlbumCreated>();
-        var albumUpdated = _autoFixture.Create<AlbumUpdated>();
-
-        session.Events.StartStream(artistCreated.ArtistId, artistCreated, albumCreated, albumUpdated);
-        await session.SaveChangesAsync();
-
-        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.ArtistId);
+        var artist = await session.Events.AggregateStreamAsync<Artist>(artistId);
 
         Assert.NotNull(artist);
-        PropertyMatcher.AssertPropertiesMatch(albumUpdated, artist.Albums[0]);
+        PropertyMatcher.AssertPropertiesMatch(updateAlbum, artist.Albums[0]);
     }
 
     [Fact]
     public async Task Update_artist_on_album_deleted_event()
     {
+        var createArtist = _autoFixture
+            .Build<CreateArtistCommand>()
+            .With(c => c.Year, () => Random.Shared.Next(1900, 2101))
+            .With(c => c.IsYearUncertain, true)
+            .Create();
+
+        var artistId = await _mediator.Send(createArtist).UnwrapAsync();
+
+        var createAlbum = _autoFixture
+            .Build<CreateAlbumCommand>()
+            .With(a => a.Year, () => Random.Shared.Next(1900, 2101))
+            .Create();
+
+        var albumId = await _mediator.Send(createAlbum).UnwrapAsync();
+
+        await _mediator.Send(new AddAlbumToArtistCommand(artistId, albumId)).UnwrapAsync();
+
+        var updateAlbum = _autoFixture
+            .Build<UpdateAlbumRequest>()
+            .With(a => a.Year, () => Random.Shared.Next(1900, 2101))
+            .Create();
+
+        await _mediator.Send(new UpdateAlbumCommand(albumId, updateAlbum)).UnwrapAsync();
+
         var session = _host.Services.GetRequiredService<IDocumentSession>();
 
-        var artistCreated = _autoFixture.Create<ArtistCreated>();
-        var albumCreated = _autoFixture.Create<AlbumCreated>();
+        var removeAlbum = new RemoveAlbumFromArtistCommand(artistId, albumId);
 
-        session.Events.StartStream(artistCreated.ArtistId, artistCreated, albumCreated);
-        await session.SaveChangesAsync();
+        await _mediator.Send(removeAlbum).UnwrapAsync();
 
-        var artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.ArtistId);
-
-        Assert.NotNull(artist);
-        PropertyMatcher.AssertPropertiesMatch(albumCreated, artist.Albums[0]);
-
-        var albumDeleted = new AlbumDeleted(albumCreated.AlbumId);
-
-        await session.Events.AppendOptimistic(artistCreated.ArtistId, albumDeleted);
-        await session.SaveChangesAsync();
-
-        artist = await session.Events.AggregateStreamAsync<Artist>(artistCreated.ArtistId);
+        var artist = await session.Events.AggregateStreamAsync<Artist>(artistId);
 
         Assert.NotNull(artist);
         Assert.Empty(artist.Albums);

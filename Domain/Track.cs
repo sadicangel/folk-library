@@ -10,6 +10,5 @@ public sealed partial record class Track(
     string? Description,
     int? Year,
     bool IsYearUncertain,
-    TimeSpan Duration,
-    [property: UnorderedEquality] List<string> Genres
+    TimeSpan Duration
 );

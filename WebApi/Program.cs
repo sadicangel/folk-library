@@ -29,6 +29,6 @@ app.UseHttpsRedirection();
 app.MapArtistEndpoints();
 app.MapAlbumEndpoints();
 
-await app.LoadDatabaseData(overwrite: false);
+await app.LoadDatabaseData(overwrite: true);
 
 app.Run();

@@ -5,7 +5,7 @@
       "commandVersion": "1.0",
       "serviceActions": {
         "postgres": "StartWithoutDebugging",
-        "postgres.admin": "StartWithoutDebugging"
+        "pgadmin": "StartWithoutDebugging"
       }
     }
   }

@@ -70,7 +70,7 @@ public static class ApplicationServices
             if (statistics.StreamCount != 0)
                 throw new InvalidOperationException("Could not reset database data");
             await scope.ServiceProvider.GetRequiredService<IDataImporter>().ImportAsync("D:/Music/Folk");
-            await scope.ServiceProvider.GetRequiredService<IDataValidator>().ValidateAsync();
         }
+        await scope.ServiceProvider.GetRequiredService<IDataValidator>().ValidateAsync();
     }
 }

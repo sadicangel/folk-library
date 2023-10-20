@@ -7,22 +7,19 @@ using MediatR;
 namespace FolkLibrary;
 
 public sealed record class CreateAlbumCommand(
-    List<string> ArtistIds,
     string Name,
     string? Description,
     int? Year,
-    List<string> Genres,
-    List<Track> Tracks)
+    List<Track> Tracks
+)
     : IRequest<Result<Guid>>;
 
 public sealed class CreateAlbumCommandValidator : AbstractValidator<CreateAlbumCommand>
 {
     public CreateAlbumCommandValidator()
     {
-        RuleFor(x => x.ArtistIds).NotEmpty();
         RuleFor(x => x.Name).NotEmpty();
         RuleFor(x => x.Year).InclusiveBetween(1900, 2100).When(x => x.Year is not null);
-        RuleFor(x => x.Genres).NotEmpty();
         RuleFor(x => x.Tracks).NotEmpty();
     }
 }
@@ -40,19 +37,14 @@ public sealed class CreateAlbumCommandHandler : IRequestHandler<CreateAlbumComma
 
     public async Task<Result<Guid>> Handle(CreateAlbumCommand request, CancellationToken cancellationToken)
     {
-        var albumId = await _uuidProvider.ProvideUuidAsync(cancellationToken);
         var albumCreated = new AlbumCreated(
-            albumId,
-            request.Name,
-            request.Description,
-            request.Year,
-            IsCompilation: request.ArtistIds.Count > 1,
-            request.Genres,
-            request.Tracks);
+            AlbumId: await _uuidProvider.ProvideUuidAsync(cancellationToken),
+            Name: request.Name,
+            Description: request.Description,
+            Year: request.Year,
+            Tracks: request.Tracks);
 
-        foreach (var artistId in request.ArtistIds)
-            await _documentSession.Events.AppendOptimistic(artistId, cancellationToken, albumCreated);
-
+        _documentSession.Events.StartStream<Album>(albumCreated.AlbumId, albumCreated);
         await _documentSession.SaveChangesAsync(cancellationToken);
 
         return albumCreated.AlbumId;

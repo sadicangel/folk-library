@@ -39,6 +39,9 @@ public static class DomainServices
             options.Projections.Add<AlbumProjection>(ProjectionLifecycle.Inline);
             options.Schema.For<Album>().Identity(a => a.AlbumId).UseOptimisticConcurrency(true);
 
+            options.Projections.Add<TrackProjection>(ProjectionLifecycle.Inline);
+            options.Schema.For<Track>().Identity(a => a.TrackId).UseOptimisticConcurrency(true);
+
             return options;
         })
             .UseLightweightSessions();

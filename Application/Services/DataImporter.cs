@@ -1,7 +1,8 @@
 ﻿using DotNext;
-using FluentValidation;
+using FolkLibrary.Albums;
+using FolkLibrary.Artists;
+using FolkLibrary.Tracks;
 using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
@@ -18,28 +19,18 @@ file readonly record struct ArtistIdentifier(Guid ArtistId, string ArtistFolder)
 internal sealed class DataImporter : IDataImporter
 {
     private static readonly JsonSerializerOptions? JsonOptions = new(JsonSerializerDefaults.Web);
-    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<DataImporter> _logger;
+    private readonly IMediator _mediator;
     private readonly IFileProvider _fileProvider;
 
     public DataImporter(
-        IServiceProvider serviceProvider,
         ILogger<DataImporter> logger,
+        IMediator mediator,
         IFileProvider fileProvider)
     {
-        _serviceProvider = serviceProvider;
         _logger = logger;
+        _mediator = mediator;
         _fileProvider = fileProvider;
-    }
-
-    private async Task<TResponse> ValidateAndHandleAsync<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
-        where TRequest : IRequest<TResponse>
-    {
-        var validator = _serviceProvider.GetRequiredService<IValidator<TRequest>>();
-        var handler = _serviceProvider.GetRequiredService<IRequestHandler<TRequest, TResponse>>();
-
-        await validator.ValidateAndThrowAsync(request, cancellationToken);
-        return await handler.Handle(request, cancellationToken);
     }
 
     public async Task ImportAsync(string? folderName = null)
@@ -56,53 +47,78 @@ internal sealed class DataImporter : IDataImporter
         var artistsByName = new Dictionary<string, ArtistIdentifier>();
         foreach (var artistFolder in Directory.EnumerateDirectories(dataFolder).SkipLast(1))
         {
-            var artist = CreateArtist(artistFolder);
-            var artistId = await ValidateAndHandleAsync<CreateArtistCommand, Result<Guid>>(artist, CancellationToken.None).UnwrapAsync();
-            _logger.LogInformation("{artistName}", artist.Name);
-            artistsByName[artist.Name] = new ArtistIdentifier(artistId, artistFolder);
+            var createArtist = CreateArtist(artistFolder);
+            var artistId = await _mediator.Send(createArtist).UnwrapAsync();
+            _logger.LogInformation("{artistName}", createArtist.Name);
+            artistsByName[createArtist.Name] = new ArtistIdentifier(artistId, artistFolder);
         }
 
-        // Create albums.
+        // Create albums. "└──" : "├──"
         foreach (var (artistName, (artistId, folder)) in artistsByName)
         {
             _logger.LogInformation("{artistName}", artistName);
-            foreach (var albumFolder in Directory.EnumerateDirectories(folder))
+            var albumFolders = Directory.GetDirectories(folder);
+            foreach (var albumFolder in albumFolders)
             {
                 var album = CreateAlbum(albumFolder);
+                var albumId = await _mediator.Send(album).UnwrapAsync();
 
-                foreach (var trackFile in Directory.EnumerateFiles(albumFolder))
+                _logger.LogInformation("{marker} {albumName}",
+                    albumFolder == albumFolders[^1] ? "└──" : "├──",
+                    album.Name);
+
+                var trackFiles = Directory.GetFiles(albumFolder);
+                foreach (var trackFile in trackFiles)
                 {
                     var track = CreateTrack(trackFile, out var performers);
+
+                    _logger.LogInformation("{marker1} {marker} {trackNumber:00} {trackName}",
+                        albumFolder == albumFolders[^1] ? "    " : "│   ",
+                        trackFile == trackFiles[^1] ? "└──" : "├──",
+                        track.Number,
+                        track.Name);
 
                     // Ensure it's the same artist for every track.
                     if (performers.Count != 1)
                         throw new FolkLibraryException($"Number of artists do not match for track {trackFile}");
                     if (!performers.TryGetValue(artistName, out var k))
                         throw new FolkLibraryException($"Artist '{artistName}' does not match artist for track {trackFile}");
-                    album.Tracks.Add(track);
+
+                    var trackId = await _mediator.Send(track).UnwrapAsync();
+                    await _mediator.Send(new AddAlbumTrack(albumId, trackId));
                 }
 
-                var albumId = await ValidateAndHandleAsync<CreateAlbumCommand, Result<Guid>>(album).UnwrapAsync();
-
-                var addAlbumToArtist = new AddAlbumToArtistCommand(artistId, albumId);
-                await ValidateAndHandleAsync<AddAlbumToArtistCommand, Result<Unit>>(addAlbumToArtist);
-
-                _logger.LogInformation("\t - {albumName}", album.Name);
+                await _mediator.Send(new AddArtistAlbum(artistId, albumId));
             }
         }
 
         const string variousArtists = "Vários Artistas";
         _logger.LogInformation("{artistName}", variousArtists);
         //var albumTracksByArtistId = new Dictionary<Guid, Dictionary<Guid, List<int>>>();
-        foreach (var albumFolder in Directory.EnumerateDirectories(Path.Combine(dataFolder, variousArtists)))
+        var variousAlbums = Directory.GetDirectories(Path.Combine(dataFolder, variousArtists));
+        foreach (var albumFolder in variousAlbums)
         {
             var album = CreateAlbum(albumFolder);
+            var albumId = await _mediator.Send(album).UnwrapAsync();
 
-            var artistIds = new List<Guid>();
+            _logger.LogInformation("{marker} {albumName}",
+                albumFolder == variousAlbums[^1] ? "└──" : "├──",
+                album.Name);
+
+            var artistIds = new HashSet<Guid>();
             //var tracksByArtistId = albumTracksByArtistId[album.AlbumId] = new Dictionary<Guid, List<int>>();
-            foreach (var trackFile in Directory.EnumerateFiles(albumFolder))
+            var trackFiles = Directory.GetFiles(albumFolder);
+            foreach (var trackFile in trackFiles)
             {
                 var track = CreateTrack(trackFile, out var performers);
+                var trackId = await _mediator.Send(track).UnwrapAsync();
+
+                _logger.LogInformation("{marker1} {marker} {trackNumber:00} {trackName}",
+                    albumFolder == variousAlbums[^1] ? "    " : "│   ",
+                    trackFile == trackFiles[^1] ? "└──" : "├──",
+                    track.Number,
+                    track.Name);
+
                 foreach (var performer in performers)
                 {
                     if (!artistsByName.TryGetValue(performer, out var artistIdentifier))
@@ -112,21 +128,19 @@ internal sealed class DataImporter : IDataImporter
                     //    tracksByArtistId[artist.ArtistId] = artistTracks = new List<int>();
                     //artistTracks.Add(track.Number);
                 }
-                album.Tracks.Add(track);
+                await _mediator.Send(new AddAlbumTrack(albumId, trackId));
             }
 
-            var albumId = await ValidateAndHandleAsync<CreateAlbumCommand, Result<Guid>>(album).UnwrapAsync();
             foreach (var artistId in artistIds)
-                await ValidateAndHandleAsync<AddAlbumToArtistCommand, Result<Unit>>(new AddAlbumToArtistCommand(artistId, albumId));
-            _logger.LogInformation("\t - {albumName}", album.Name);
+                await _mediator.Send(new AddArtistAlbum(artistId, albumId));
         }
     }
 
-    private static CreateArtistCommand CreateArtist(string artistFolder)
+    private static CreateArtist CreateArtist(string artistFolder)
     {
         var artistName = Path.GetFileName(artistFolder);
         var infoJson = File.ReadAllBytes(Path.Combine(artistFolder, "info.json"));
-        var artist = JsonSerializer.Deserialize<CreateArtistCommand>(infoJson, JsonOptions)!;
+        var artist = JsonSerializer.Deserialize<CreateArtist>(infoJson, JsonOptions)!;
         if (artist.Name != artistName)
             throw new FolkLibraryException($"Folder '{artistName}' != ArtistName {artist.Name}");
         if (string.IsNullOrEmpty(artist.ShortName))
@@ -134,32 +148,29 @@ internal sealed class DataImporter : IDataImporter
         return artist;
     }
 
-    private static CreateAlbumCommand CreateAlbum(string albumFolder)
+    private static CreateAlbum CreateAlbum(string albumFolder)
     {
         var albumName = Path.GetFileName(albumFolder);
 
-        return new CreateAlbumCommand(
+        return new CreateAlbum(
             Name: albumName,
             Description: null,
-            Year: ParseYear(albumName),
-            Tracks: new List<Track>());
+            Year: ParseYear(albumName));
 
         static int? ParseYear(string albumName) => albumName.Length > 4 && int.TryParse(albumName.AsSpan()[^4..], out var albumYear) ? albumYear : null;
     }
 
-    private static Track CreateTrack(string trackFile, out HashSet<string> performers)
+    private static CreateTrack CreateTrack(string trackFile, out HashSet<string> performers)
     {
         var meta = TagLib.File.Create(trackFile);
         var tag = meta.Tag;
         performers = new HashSet<string>(tag.Performers);
 
-        var track = new Track(
-            TrackId: Guid.NewGuid(),
+        var track = new CreateTrack(
             Name: tag.Title ?? throw new FolkLibraryException($"Track '{trackFile}' has no title"),
             Number: tag.Track is not 0 ? (int)tag.Track : throw new FolkLibraryException($"Track '{trackFile}' has no number"),
             Description: null,
             Year: tag.Year != 0 ? (int)tag.Year : null,
-            IsYearUncertain: tag.Year == 0,
             Duration: meta.Properties.Duration
         );
 

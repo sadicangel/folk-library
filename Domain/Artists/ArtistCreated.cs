@@ -1,4 +1,4 @@
-﻿namespace FolkLibrary;
+﻿namespace FolkLibrary.Artists;
 
 public sealed record class ArtistCreated(
     Guid ArtistId,
@@ -18,7 +18,6 @@ public sealed record class ArtistCreated(
         Year,
         IsYearUncertain,
         ArtistUtil.GetYearString(Year, IsYearUncertain),
-        IsAbroad: Location.CountryCode is not "PT",
         Location,
         new List<Album>());
 }

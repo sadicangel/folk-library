@@ -3,7 +3,7 @@ using FluentValidation;
 using Marten;
 using MediatR;
 
-namespace FolkLibrary;
+namespace FolkLibrary.Artists;
 
 public sealed record class UpdateArtistInfoRequest(
     string? Name,
@@ -12,11 +12,11 @@ public sealed record class UpdateArtistInfoRequest(
     int? Year,
     bool? IsYearUncertain);
 
-public sealed record class UpdateArtistInfoCommand(Guid ArtistId, UpdateArtistInfoRequest Request) : IRequest<Result<Unit>>;
+public sealed record class UpdateArtistInfo(Guid ArtistId, UpdateArtistInfoRequest Request) : IRequest<Result<Unit>>;
 
-public sealed class UpdateArtistInfoRequestValidator : AbstractValidator<UpdateArtistInfoCommand>
+public sealed class UpdateArtistInfoValidator : AbstractValidator<UpdateArtistInfo>
 {
-    public UpdateArtistInfoRequestValidator()
+    public UpdateArtistInfoValidator()
     {
         RuleFor(r => r.ArtistId).NotEmpty();
         RuleFor(r => r.Request).NotEmpty().ChildRules(v =>
@@ -29,17 +29,23 @@ public sealed class UpdateArtistInfoRequestValidator : AbstractValidator<UpdateA
 }
 
 
-public sealed class UpdateArtistInfoRequestHandler : IRequestHandler<UpdateArtistInfoCommand, Result<Unit>>
+public sealed class UpdateArtistInfoHandler : IRequestHandler<UpdateArtistInfo, Result<Unit>>
 {
+    private readonly IValidator<UpdateArtistInfo> _validator;
     private readonly IDocumentSession _documentSession;
 
-    public UpdateArtistInfoRequestHandler(IDocumentSession documentSession)
+    public UpdateArtistInfoHandler(IValidator<UpdateArtistInfo> validator, IDocumentSession documentSession)
     {
+        _validator = validator;
         _documentSession = documentSession;
     }
 
-    public async Task<Result<Unit>> Handle(UpdateArtistInfoCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(UpdateArtistInfo request, CancellationToken cancellationToken)
     {
+        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+            return new Result<Unit>(new ValidationException(validationResult.Errors));
+
         var artistUpdated = new ArtistInfoUpdated(
             request.Request.Name,
             request.Request.ShortName,

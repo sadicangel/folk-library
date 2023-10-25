@@ -20,14 +20,14 @@ public enum ExportFormat
 
 internal sealed class DataExporter : IDataExporter
 {
-    private readonly IDocumentSession _dbSession;
+    private readonly IDocumentSession _documentSession;
 
     private static IReadOnlyDictionary<PropertyInfo, Func<Artist, object>> ArtistGetters { get; } = CreatePropertyGetters<Artist>();
     private static IReadOnlyDictionary<PropertyInfo, Func<Album, object>> AlbumGetters { get; } = CreatePropertyGetters<Album>();
 
-    public DataExporter(IDocumentSession dbSession)
+    public DataExporter(IDocumentSession _documentSession)
     {
-        _dbSession = dbSession;
+        this._documentSession = _documentSession;
     }
 
     public Task ExportAsync(string fileName, ExportFormat format, bool overwrite = false)
@@ -48,8 +48,7 @@ internal sealed class DataExporter : IDataExporter
             File.Delete(fileName);
         }
 
-        var streamIds = _dbSession.Events.QueryAllRawEvents().DistinctBy(e => e.StreamId).Select(e => e.StreamId).ToList();
-        var artists = streamIds.Select(id => _dbSession.Events.AggregateStream<Artist>(id) ?? throw new InvalidOperationException($"Missing Artist {id}")).ToList();
+        var artists = await _documentSession.Query<Artist>().ToListAsync();
 
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         using var package = new ExcelPackage(new FileInfo(fileName));

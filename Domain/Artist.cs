@@ -11,7 +11,9 @@ public sealed record class Artist(
     int? Year,
     bool IsYearUncertain,
     string YearString,
-    bool IsAbroad,
     Location Location,
     [property: UnorderedEquality] List<Album> Albums
-);
+)
+{
+    public bool IsAbroad { get => Location is not { CountryCode: "PT" }; }
+}

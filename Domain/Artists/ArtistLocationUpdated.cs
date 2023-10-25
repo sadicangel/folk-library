@@ -1,4 +1,4 @@
-﻿namespace FolkLibrary;
+﻿namespace FolkLibrary.Artists;
 
 public sealed record class ArtistLocationUpdated(string? CountryCode, string? CountryName, string? District, string? Municipality, string? Parish)
 {

@@ -8,9 +8,11 @@ public sealed record class Album(
     string? Description,
     int? Year,
     bool IsYearUncertain,
-    bool IsCompilation,
     bool IsIncomplete,
     TimeSpan Duration,
     [property: UnorderedEquality] List<Guid> Artists,
     [property: UnorderedEquality] List<Track> Tracks
-);
+)
+{
+    public bool IsCompilation { get => Artists is { Count: >= 2 }; }
+}

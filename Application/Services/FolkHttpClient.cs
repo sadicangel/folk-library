@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using FolkLibrary.Artists;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Web;
@@ -7,7 +8,7 @@ namespace FolkLibrary.Services;
 public interface IFolkHttpClient
 {
     Task<Artist> GetArtistByIdAsync(Guid artistId);
-    Task<Page<Artist>> GetArtistsAsync(GetArtistsCommand? filter = null, int? pageIndex = null, int? pageSize = null);
+    Task<Page<Artist>> GetArtistsAsync(GetArtists? filter = null, int? pageIndex = null, int? pageSize = null);
 }
 
 internal sealed class FolkHttpClient : IFolkHttpClient
@@ -19,7 +20,7 @@ internal sealed class FolkHttpClient : IFolkHttpClient
         _httpClient = httpClient;
     }
 
-    public async Task<Page<Artist>> GetArtistsAsync(GetArtistsCommand? filter = null, int? pageIndex = null, int? pageSize = null)
+    public async Task<Page<Artist>> GetArtistsAsync(GetArtists? filter = null, int? pageIndex = null, int? pageSize = null)
     {
         var request = new HttpRequestMessage
         {

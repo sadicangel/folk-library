@@ -4,24 +4,27 @@ using Marten;
 using MediatR;
 using System.Text;
 
-namespace FolkLibrary;
+namespace FolkLibrary.Artists;
 
 public sealed record class GetArtistsResponse(IReadOnlyList<Artist> Artists);
 
-public sealed record class GetArtistsCommand(
+public sealed record class GetArtists(
+    string? Name = null,
     string? CountryCode = null,
     string? CountryName = null,
     string? District = null,
     string? Municipality = null,
     string? Parish = null,
+    int? Year = null,
     int? AfterYear = null,
     int? BeforeYear = null) : IRequest<Result<GetArtistsResponse>>;
 
-public sealed class GetArtistsCommandValidator : AbstractValidator<GetArtistsCommand>
+public sealed class GetArtistsValidator : AbstractValidator<GetArtists>
 {
-    public GetArtistsCommandValidator()
+    public GetArtistsValidator()
     {
         RuleFor(r => r.CountryCode).Length(2).When(r => r.CountryCode is not null);
+        RuleFor(r => r.Year).InclusiveBetween(1900, 2100).When(r => r.Year is not null);
         RuleFor(r => r.AfterYear).InclusiveBetween(1900, 2100).When(r => r.AfterYear is not null);
         RuleFor(r => r.AfterYear).GreaterThanOrEqualTo(r => r.BeforeYear).When(r => r.AfterYear is not null && r.BeforeYear is not null);
         RuleFor(r => r.BeforeYear).InclusiveBetween(1900, 2100).When(r => r.BeforeYear is not null);
@@ -29,17 +32,23 @@ public sealed class GetArtistsCommandValidator : AbstractValidator<GetArtistsCom
     }
 }
 
-public sealed class GetArtistsCommandHandler : IRequestHandler<GetArtistsCommand, Result<GetArtistsResponse>>
+public sealed class GetArtistsHandler : IRequestHandler<GetArtists, Result<GetArtistsResponse>>
 {
+    private readonly IValidator<GetArtists> _validator;
     private readonly IDocumentSession _documentSession;
 
-    public GetArtistsCommandHandler(IDocumentSession documentSession)
+    public GetArtistsHandler(IValidator<GetArtists> validator, IDocumentSession documentSession)
     {
+        _validator = validator;
         _documentSession = documentSession;
     }
 
-    public async Task<Result<GetArtistsResponse>> Handle(GetArtistsCommand request, CancellationToken cancellationToken)
+    public async Task<Result<GetArtistsResponse>> Handle(GetArtists request, CancellationToken cancellationToken)
     {
+        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+            return new Result<GetArtistsResponse>(new ValidationException(validationResult.Errors));
+
         var query = GetParameterizedQuery(request);
         var artists = await query.Match(
             some: q => _documentSession.QueryAsync<Artist>(q.Where, cancellationToken, q.Params),
@@ -48,7 +57,7 @@ public sealed class GetArtistsCommandHandler : IRequestHandler<GetArtistsCommand
         return new GetArtistsResponse(artists);
     }
 
-    private static Optional<(string Where, object[] Params)> GetParameterizedQuery(GetArtistsCommand request)
+    private static Optional<(string Where, object[] Params)> GetParameterizedQuery(GetArtists request)
     {
         StringBuilder? _builder = null;
         List<object>? _params = null;
@@ -56,6 +65,11 @@ public sealed class GetArtistsCommandHandler : IRequestHandler<GetArtistsCommand
         List<object> Params() => _params ??= new List<object>();
         string Keyword() => _params is { Count: > 0 } ? " and" : "where";
 
+        if (request.Name is not null)
+        {
+            Builder().Append($"{Keyword()} data ->> '{nameof(Artist.Name)}' ILIKE ?");
+            Params().Add($"%{request.Name}%");
+        }
         if (request.CountryCode is not null)
         {
             Builder().Append($"{Keyword()} data -> '{nameof(Artist.Location)}' ->> '{nameof(Location.CountryCode)}' = ?");
@@ -80,6 +94,11 @@ public sealed class GetArtistsCommandHandler : IRequestHandler<GetArtistsCommand
         {
             Builder().Append($"{Keyword()} data -> '{nameof(Artist.Location)}' ->> '{nameof(Location.Parish)}' = ?");
             Params().Add(request.Parish);
+        }
+        if (request.Year is not null)
+        {
+            Builder().Append($"{Keyword()} (data -> '{nameof(Artist.Year)}')::int = ?");
+            Params().Add(request.Year.Value);
         }
         if (request.AfterYear is not null)
         {

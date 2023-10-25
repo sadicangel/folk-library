@@ -1,6 +1,6 @@
-﻿namespace FolkLibrary;
+﻿namespace FolkLibrary.Artists;
 
-public sealed record class AlbumRemovedFromArtist(Guid AlbumId)
+public sealed record class ArtistAlbumRemoved(Guid AlbumId)
 {
     public Artist Apply(Artist aggregate)
     {

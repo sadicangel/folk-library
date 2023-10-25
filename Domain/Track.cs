@@ -1,10 +1,8 @@
-﻿using Generator.Equals;
+﻿namespace FolkLibrary;
 
-namespace FolkLibrary;
-
-[Equatable]
-public sealed partial record class Track(
+public sealed record class Track(
     Guid TrackId,
+    Guid AlbumId,
     string Name,
     int Number,
     string? Description,

@@ -1,11 +1,10 @@
-﻿namespace FolkLibrary;
+﻿namespace FolkLibrary.Albums;
 
 public sealed record class AlbumCreated(
     Guid AlbumId,
     string Name,
     string? Description,
-    int? Year,
-    List<Track> Tracks)
+    int? Year)
 {
     public Album Create()
     {
@@ -15,11 +14,10 @@ public sealed record class AlbumCreated(
             Description: Description,
             Year: Year,
             IsYearUncertain: Year is null,
-            IsCompilation: false,
-            IsIncomplete: Tracks.Count == 0 || Tracks.Max(t => t.Number) != Tracks.Count,
-            Duration: Tracks.Count == 0 ? TimeSpan.Zero : Tracks.Aggregate(TimeSpan.Zero, (p, c) => p + c.Duration),
+            IsIncomplete: true,
+            Duration: TimeSpan.Zero,
             Artists: new List<Guid>(),
-            Tracks: Tracks
+            Tracks: new List<Track>()
         );
     }
 }

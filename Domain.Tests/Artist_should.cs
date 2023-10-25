@@ -1,4 +1,6 @@
 ﻿using AutoFixture;
+using FolkLibrary.Albums;
+using FolkLibrary.Artists;
 using Marten;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,10 +32,10 @@ public sealed class Artist_should : IAsyncLifetime
     public Task DisposeAsync() => _host.StopAsync();
 
     [Fact]
-    public async Task Create_artist_on_artist_created_event()
+    public async Task Create_artist_on_artist_created()
     {
         var createArtist = _autoFixture
-            .Build<CreateArtistCommand>()
+            .Build<CreateArtist>()
             .With(c => c.Year, () => Random.Shared.Next(1900, 2101))
             .With(c => c.IsYearUncertain, true)
             .Create();
@@ -47,10 +49,10 @@ public sealed class Artist_should : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Update_artist_on_artist_updated_event()
+    public async Task Update_artist_on_artist_updated()
     {
         var createArtist = _autoFixture
-            .Build<CreateArtistCommand>()
+            .Build<CreateArtist>()
             .With(c => c.Year, () => Random.Shared.Next(1900, 2101))
             .With(c => c.IsYearUncertain, true)
             .Create();
@@ -63,7 +65,7 @@ public sealed class Artist_should : IAsyncLifetime
             .With(c => c.IsYearUncertain, true)
             .Create();
 
-        await _mediator.Send(new UpdateArtistInfoCommand(artistId, updateArtist)).UnwrapAsync();
+        await _mediator.Send(new UpdateArtistInfo(artistId, updateArtist)).UnwrapAsync();
 
         var session = _host.Services.GetRequiredService<IDocumentSession>();
         var artist = await session.Events.AggregateStreamAsync<Artist>(artistId);
@@ -72,10 +74,10 @@ public sealed class Artist_should : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Update_artist_on_album_created_event()
+    public async Task Update_artist_on_album_created()
     {
         var createArtist = _autoFixture
-            .Build<CreateArtistCommand>()
+            .Build<CreateArtist>()
             .With(c => c.Year, () => Random.Shared.Next(1900, 2101))
             .With(c => c.IsYearUncertain, true)
             .Create();
@@ -83,13 +85,13 @@ public sealed class Artist_should : IAsyncLifetime
         var artistId = await _mediator.Send(createArtist).UnwrapAsync();
 
         var createAlbum = _autoFixture
-            .Build<CreateAlbumCommand>()
+            .Build<CreateAlbum>()
             .With(a => a.Year, () => Random.Shared.Next(1900, 2101))
             .Create();
 
         var albumId = await _mediator.Send(createAlbum).UnwrapAsync();
 
-        var addAlbum = new AddAlbumToArtistCommand(artistId, albumId);
+        var addAlbum = new AddArtistAlbum(artistId, albumId);
 
         await _mediator.Send(addAlbum).UnwrapAsync();
 
@@ -103,10 +105,10 @@ public sealed class Artist_should : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Update_artist_on_album_updated_event()
+    public async Task Update_artist_on_album_updated()
     {
         var createArtist = _autoFixture
-            .Build<CreateArtistCommand>()
+            .Build<CreateArtist>()
             .With(c => c.Year, () => Random.Shared.Next(1900, 2101))
             .With(c => c.IsYearUncertain, true)
             .Create();
@@ -114,20 +116,20 @@ public sealed class Artist_should : IAsyncLifetime
         var artistId = await _mediator.Send(createArtist).UnwrapAsync();
 
         var createAlbum = _autoFixture
-            .Build<CreateAlbumCommand>()
+            .Build<CreateAlbum>()
             .With(a => a.Year, () => Random.Shared.Next(1900, 2101))
             .Create();
 
         var albumId = await _mediator.Send(createAlbum).UnwrapAsync();
 
-        await _mediator.Send(new AddAlbumToArtistCommand(artistId, albumId)).UnwrapAsync();
+        await _mediator.Send(new AddArtistAlbum(artistId, albumId)).UnwrapAsync();
 
         var updateAlbum = _autoFixture
-            .Build<UpdateAlbumRequest>()
+            .Build<UpdateAlbumInfoRequest>()
             .With(a => a.Year, () => Random.Shared.Next(1900, 2101))
             .Create();
 
-        await _mediator.Send(new UpdateAlbumCommand(albumId, updateAlbum)).UnwrapAsync();
+        await _mediator.Send(new UpdateAlbumInfo(albumId, updateAlbum)).UnwrapAsync();
 
         var session = _host.Services.GetRequiredService<IDocumentSession>();
 
@@ -138,10 +140,10 @@ public sealed class Artist_should : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Update_artist_on_album_deleted_event()
+    public async Task Update_artist_on_album_removed_from_artist()
     {
         var createArtist = _autoFixture
-            .Build<CreateArtistCommand>()
+            .Build<CreateArtist>()
             .With(c => c.Year, () => Random.Shared.Next(1900, 2101))
             .With(c => c.IsYearUncertain, true)
             .Create();
@@ -149,24 +151,24 @@ public sealed class Artist_should : IAsyncLifetime
         var artistId = await _mediator.Send(createArtist).UnwrapAsync();
 
         var createAlbum = _autoFixture
-            .Build<CreateAlbumCommand>()
+            .Build<CreateAlbum>()
             .With(a => a.Year, () => Random.Shared.Next(1900, 2101))
             .Create();
 
         var albumId = await _mediator.Send(createAlbum).UnwrapAsync();
 
-        await _mediator.Send(new AddAlbumToArtistCommand(artistId, albumId)).UnwrapAsync();
+        await _mediator.Send(new AddArtistAlbum(artistId, albumId)).UnwrapAsync();
 
         var updateAlbum = _autoFixture
-            .Build<UpdateAlbumRequest>()
+            .Build<UpdateAlbumInfoRequest>()
             .With(a => a.Year, () => Random.Shared.Next(1900, 2101))
             .Create();
 
-        await _mediator.Send(new UpdateAlbumCommand(albumId, updateAlbum)).UnwrapAsync();
+        await _mediator.Send(new UpdateAlbumInfo(albumId, updateAlbum)).UnwrapAsync();
 
         var session = _host.Services.GetRequiredService<IDocumentSession>();
 
-        var removeAlbum = new RemoveAlbumFromArtistCommand(artistId, albumId);
+        var removeAlbum = new RemoveArtistAlbum(artistId, albumId);
 
         await _mediator.Send(removeAlbum).UnwrapAsync();
 

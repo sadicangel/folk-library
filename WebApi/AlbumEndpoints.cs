@@ -1,5 +1,5 @@
 ﻿using DotNext;
-using FluentValidation;
+using FolkLibrary.Albums;
 using MediatR;
 
 namespace FolkLibrary.Infrastructure;
@@ -10,28 +10,33 @@ public static class AlbumEndpoints
     {
         var group = endpoints.MapGroup("/api/albums");
         group.MapPost("/", CreateAlbum);
-        group.MapPut("/{albumId}", UpdateAlbum);
+        group.MapPut("/{albumId}", UpdateAlbumInfo);
+        group.MapPut("/{albumId}/{trackId}", AddAlbumTrack);
         return endpoints;
     }
 
-    private static Task<IResult> CreateAlbum(
-        CreateAlbumCommand command,
-        IValidator<CreateAlbumCommand> validator,
-        IRequestHandler<CreateAlbumCommand, Result<Guid>> handler,
+    private static Task<IResult> CreateAlbum(CreateAlbum command, IRequestHandler<CreateAlbum, Result<Guid>> handler, CancellationToken cancellationToken) =>
+        handler.Handle(command, cancellationToken).ToResultAsync();
+
+    private static Task<IResult> UpdateAlbumInfo(
+        Guid albumId,
+        UpdateAlbumInfoRequest request,
+        IRequestHandler<UpdateAlbumInfo, Result<Unit>> handler,
         CancellationToken cancellationToken)
     {
-        return command.HandleAsync(validator, handler, cancellationToken);
+        var command = new UpdateAlbumInfo(albumId, request);
+
+        return handler.Handle(command, cancellationToken).ToResultAsync();
     }
 
-    private static Task<IResult> UpdateAlbum(
+    public static Task<IResult> AddAlbumTrack(
         Guid albumId,
-        UpdateAlbumRequest request,
-        IValidator<UpdateAlbumCommand> validator,
-        IRequestHandler<UpdateAlbumCommand, Result<Unit>> handler,
+        Guid trackId,
+        IRequestHandler<AddAlbumTrack, Result<Unit>> handler,
         CancellationToken cancellationToken)
     {
-        var command = new UpdateAlbumCommand(albumId, request);
+        var command = new AddAlbumTrack(albumId, trackId);
 
-        return command.HandleAsync(validator, handler, cancellationToken);
+        return handler.Handle(command, cancellationToken).ToResultAsync();
     }
 }

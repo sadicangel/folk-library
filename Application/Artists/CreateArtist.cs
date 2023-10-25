@@ -4,9 +4,9 @@ using FolkLibrary.Services;
 using Marten;
 using MediatR;
 
-namespace FolkLibrary;
+namespace FolkLibrary.Artists;
 
-public sealed record class CreateArtistCommand(
+public sealed record class CreateArtist(
     string Name,
     string ShortName,
     string? Description,
@@ -16,9 +16,9 @@ public sealed record class CreateArtistCommand(
 )
     : IRequest<Result<Guid>>;
 
-public sealed class CreateArtistCommandValidator : AbstractValidator<CreateArtistCommand>
+public sealed class CreateArtistValidator : AbstractValidator<CreateArtist>
 {
-    public CreateArtistCommandValidator(IValidator<Location> locationValidator)
+    public CreateArtistValidator(IValidator<Location> locationValidator)
     {
         RuleFor(r => r.Name).NotEmpty();
         RuleFor(r => r.ShortName).NotEmpty();
@@ -28,19 +28,25 @@ public sealed class CreateArtistCommandValidator : AbstractValidator<CreateArtis
 }
 
 
-public sealed class CreateArtistCommandHandler : IRequestHandler<CreateArtistCommand, Result<Guid>>
+public sealed class CreateArtistHandler : IRequestHandler<CreateArtist, Result<Guid>>
 {
+    private readonly IValidator<CreateArtist> _validator;
     private readonly IDocumentSession _documentSession;
     private readonly IUuidProvider _uuidProvider;
 
-    public CreateArtistCommandHandler(IDocumentSession documentSession, IUuidProvider uuidProvider)
+    public CreateArtistHandler(IValidator<CreateArtist> validator, IDocumentSession documentSession, IUuidProvider uuidProvider)
     {
+        _validator = validator;
         _documentSession = documentSession;
         _uuidProvider = uuidProvider;
     }
 
-    public async Task<Result<Guid>> Handle(CreateArtistCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateArtist request, CancellationToken cancellationToken)
     {
+        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+            return new Result<Guid>(new ValidationException(validationResult.Errors));
+
         var artistId = await _uuidProvider.ProvideUuidAsync(cancellationToken);
         var artisCreated = new ArtistCreated(
             ArtistId: artistId,

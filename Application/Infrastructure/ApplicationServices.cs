@@ -71,6 +71,8 @@ public static class ApplicationServices
                 throw new InvalidOperationException("Could not reset database data");
             await scope.ServiceProvider.GetRequiredService<IDataImporter>().ImportAsync("D:/Music/Folk");
         }
-        await scope.ServiceProvider.GetRequiredService<IDataValidator>().ValidateAsync();
+        var validationResult = await scope.ServiceProvider.GetRequiredService<IDataValidator>().ValidateAsync();
+        if (!validationResult.IsValid)
+            throw new ValidationException(validationResult.Errors);
     }
 }

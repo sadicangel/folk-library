@@ -1,4 +1,4 @@
-﻿namespace FolkLibrary;
+﻿namespace FolkLibrary.Artists;
 
 public sealed record class ArtistInfoUpdated(
     string? Name,

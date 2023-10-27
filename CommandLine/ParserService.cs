@@ -21,18 +21,22 @@ internal sealed class ParserService : BackgroundService
     {
         await _console
             .Status()
-            .StartAsync("Processing", ctx => _parser.InvokeAsync("--help"));
+            .StartAsync("Loading", ctx => _parser.InvokeAsync("--help"));
+
         while (!stoppingToken.IsCancellationRequested)
         {
             WriteDivider();
             try
             {
-                var line = await _prompt.ShowAsync(_console, stoppingToken);
+                //var line = await _prompt.ShowAsync(_console, stoppingToken);
+                var line = await Console.In.ReadLineAsync(stoppingToken);
 
-                await _console
-                    .Status()
-                    .StartAsync("Processing", ctx => _parser.InvokeAsync(line));
-
+                if (!String.IsNullOrEmpty(line))
+                {
+                    await _console
+                        .Status()
+                        .StartAsync("Processing", ctx => _parser.InvokeAsync(line));
+                }
             }
             catch (TaskCanceledException)
             {

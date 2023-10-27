@@ -36,7 +36,7 @@ public static class ArtistEndpoints
         Param<int>? year,
         Param<int>? afterYear,
         Param<int>? beforeYear,
-        Param<Sort>? sort,
+        Param<OrderBy>? sort,
         IRequestHandler<GetArtists, Result<GetArtistsResponse>> handler,
         CancellationToken cancellationToken)
     {

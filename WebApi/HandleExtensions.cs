@@ -26,4 +26,10 @@ public static class HandleExtensions
         var unwrapped = await result;
         return unwrapped.Match(Results.Ok, MatchError);
     }
+
+    public static async Task<IResult> ToResultAsync<T>(this Task<Result<Optional<T>>> result)
+    {
+        var unwrapped = await result;
+        return unwrapped.Match(ok => ok.Match(Results.Ok, () => Results.NotFound()), MatchError);
+    }
 }

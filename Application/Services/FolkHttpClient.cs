@@ -1,4 +1,6 @@
-﻿using FolkLibrary.Artists;
+﻿using FolkLibrary.Albums;
+using FolkLibrary.Artists;
+using FolkLibrary.Tracks;
 using Microsoft.Extensions.Http.AutoClient;
 
 namespace FolkLibrary.Services;
@@ -20,6 +22,32 @@ public interface IFolkHttpClient
         [Query] int? year = null,
         [Query] int? afterYear = null,
         [Query] int? beforeYear = null,
-        [Query] Sort? sort = null,
+        [Query] OrderBy? orderBy = null,
+        CancellationToken cancellationToken = default);
+
+    [Get("/api/albums/{albumId}")]
+    Task<Album> GetAlbumAsync(Guid albumId, CancellationToken cancellationToken = default);
+
+    [Get("/api/albums")]
+    Task<GetAlbumsResponse> GetAlbumsAsync(
+        [Query] string? name = null,
+        [Query] int? year = null,
+        [Query] int? afterYear = null,
+        [Query] int? beforeYear = null,
+        [Query] OrderBy? orderBy = null,
+        CancellationToken cancellationToken = default);
+
+    [Get("/api/tracks/{trackId}")]
+    Task<Track> GetTrackAsync(Guid trackId, CancellationToken cancellationToken = default);
+
+    [Get("/api/tracks")]
+    Task<GetTracksResponse> GetTracksAsync(
+        [Query] string? name = null,
+        [Query] int? year = null,
+        [Query] int? afterYear = null,
+        [Query] int? beforeYear = null,
+        [Query] TimeSpan? aboveDuration = null,
+        [Query] TimeSpan? belowDuration = null,
+        [Query] OrderBy? orderBy = null,
         CancellationToken cancellationToken = default);
 }

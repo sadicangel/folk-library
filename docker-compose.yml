@@ -1,41 +1,35 @@
 version: '3.4'
 
 services:
-  folklibrary.webapi:
-    container_name: WebApi
+  webapi:
+    container_name: webapi
     image: ${DOCKER_REGISTRY-}folklibrarywebapi
     build:
       context: .
-      dockerfile: FolkLibrary.WebApi/Dockerfile
+      dockerfile: WebApi/Dockerfile
     volumes:
     - /d/music/folk:/app/data
     depends_on:
     - postgres
-    - mongodb
   postgres:
-    container_name: Postgres
+    container_name: postgres
     image: postgres
+    ports:
+    - 5432:5432
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: folklibrary
-  postgres.admin:
-    container_name: Postgres.Admin
-    image: dbeaver/cloudbeaver
+    volumes:
+       - ./_postgres:/var/lib/postgresql/data
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
     ports:
-    - 8978:8978
+    - 5433:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "postgres@email.com"
+      PGADMIN_DEFAULT_PASSWORD: "postgres"
     depends_on:
     - postgres
-  mongodb:
-    container_name: MongoDB
-    image: mongo
-  mongodb.admin:
-    container_name: MongoDB.Admin
-    image: mongo-express
-    ports:
-      - 8081:8081
-    environment:
-      ME_CONFIG_MONGODB_SERVER: mongodb
-    depends_on:
-    - mongodb
 

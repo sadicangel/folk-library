@@ -1,68 +1,25 @@
 ﻿using FolkLibrary.Artists;
-using FolkLibrary.Interfaces;
-using System.Net.Http.Json;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Web;
+using Microsoft.Extensions.Http.AutoClient;
 
 namespace FolkLibrary.Services;
-internal sealed class FolkHttpClient : IFolkHttpClient
+
+[AutoClient(nameof(IFolkHttpClient))]
+public interface IFolkHttpClient
 {
-    private readonly HttpClient _httpClient;
+    [Get("/api/artists/{artistId}")]
+    Task<Artist> GetArtistAsync(Guid artistId, CancellationToken cancellationToken = default);
 
-    public FolkHttpClient(HttpClient httpClient)
-    {
-        _httpClient = httpClient;
-    }
-
-    public async Task<Page<ArtistDto>> GetArtistsAsync(ArtistFilterDto? filter = null, int? pageIndex = null, int? pageSize = null)
-    {
-        var request = new HttpRequestMessage
-        {
-            Method = HttpMethod.Get,
-            RequestUri = new Uri($"api/artist{filter.ToQueryParams()}", UriKind.Relative),
-            Headers =
-            {
-                { "X-Page-Index", pageIndex.ToString() },
-                { "X-Page-Size", pageSize?.ToString() }
-            }
-        };
-        var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-        var result = await response.Content.ReadFromJsonAsync<Page<ArtistDto>>();
-        return result!;
-    }
-
-    public async Task<ArtistDto> GetArtistByIdAsync(Guid artistId)
-    {
-        var uri = $"api/artist/{artistId}";
-        var result = await _httpClient.GetFromJsonAsync<ArtistDto>(uri);
-        return result!;
-    }
-}
-
-file static class QueryParamsHelper
-{
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-
-    public static string ToQueryParams<T>(this T? obj) where T : class
-    {
-        if (obj is null)
-            return String.Empty;
-
-        var json = JsonSerializer.Serialize(obj, JsonOptions);
-        var node = JsonNode.Parse(json);
-
-        if (node is null)
-            return String.Empty;
-
-        var query = HttpUtility.ParseQueryString("");
-        foreach (var (key, child) in node.AsObject())
-        {
-            if (child?.AsValue() is JsonValue value)
-                query[key] = value.ToString();
-        }
-
-        return query.ToString()!;
-    }
+    [Get("/api/artists")]
+    Task<GetArtistsResponse> GetArtistsAsync(
+        [Query] string? name = null,
+        [Query] string? countryCode = null,
+        [Query] string? countryName = null,
+        [Query] string? district = null,
+        [Query] string? municipality = null,
+        [Query] string? parish = null,
+        [Query] int? year = null,
+        [Query] int? afterYear = null,
+        [Query] int? beforeYear = null,
+        [Query] Sort? sort = null,
+        CancellationToken cancellationToken = default);
 }

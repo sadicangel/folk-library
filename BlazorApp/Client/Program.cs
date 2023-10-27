@@ -1,4 +1,5 @@
 using FolkLibrary;
+using FolkLibrary.Infrastructure;
 using FolkLibrary.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -15,8 +16,8 @@ builder.Services.AddApplication();
 builder.Services.AddTransient<AntiforgeryHandler>();
 builder.Services.AddSingleton<ArtistStateProvider>();
 
-builder.Services.AddHttpClient("backend", client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
+builder.Services.AddHttpClient(nameof(IFolkHttpClient), client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
     .AddHttpMessageHandler<AntiforgeryHandler>();
-builder.Services.AddFolkHttpClient(httpClientName: "backend");
+builder.Services.AddFolkHttpClient();
 
 await builder.Build().RunAsync();

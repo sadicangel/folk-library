@@ -1,4 +1,5 @@
 using Duende.Bff.Yarp;
+using FolkLibrary.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 

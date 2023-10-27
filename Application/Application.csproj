@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>FolkLibrary</RootNamespace>
     <AssemblyName>FolkLibrary.$(MSBuildProjectName)</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,14 +18,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ardalis.Specification" Version="6.1.0" />
-    <PackageReference Include="Docker.DotNet" Version="3.125.14" />
-    <PackageReference Include="Hashids.net" Version="1.7.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
-    <PackageReference Include="OneOf" Version="3.0.243" />
-    <PackageReference Include="OneOf.SourceGenerator" Version="3.0.243" />
+    <PackageReference Include="Dapper" Version="2.1.15" />
+    <PackageReference Include="Docker.DotNet" Version="3.125.15" />
+    <PackageReference Include="EPPlus" Version="6.2.10" />
+    <PackageReference Include="Humanizer.Core" Version="2.14.1" />
+    <PackageReference Include="JsonSchema.Net" Version="5.2.6" />
+    <PackageReference Include="MediatR" Version="12.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0-rc.2.23479.6" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0-rc.2.23479.6" />
+    <PackageReference Include="Microsoft.Extensions.Http.AutoClient" Version="8.0.0-rc.2.23510.2" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0-rc.2.23479.6" />
+    <PackageReference Include="Riok.Mapperly" Version="3.2.0" />
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
   </ItemGroup>
 
   <ItemGroup>

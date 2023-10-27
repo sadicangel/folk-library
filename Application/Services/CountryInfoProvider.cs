@@ -2,6 +2,10 @@
 using System.Text.Json;
 
 namespace FolkLibrary.Services;
+public interface ICountryInfoProvider
+{
+    string GetCountryName(string alpha2, string language = "en");
+}
 
 internal sealed class CountryInfoProvider : ICountryInfoProvider
 {
@@ -22,9 +26,5 @@ internal sealed class CountryInfoProvider : ICountryInfoProvider
             element.EnumerateObject().Where(p => p.Value.ValueKind == JsonValueKind.String).ToDictionary(p => p.Name, p => p.Value.GetString());
     }
 
-    public string GetCountryName(string alpha2) => _countries[alpha2]["en"] ?? throw new InvalidOperationException($"English name for country {alpha2} does not exist");
-
-    public string? GetCountryName(string alpha2, string language) => _countries[alpha2].GetValueOrDefault(language);
-
-    public string GetCountryNameOrDefault(string alpha2, string language) => _countries[alpha2].GetValueOrDefault(language) ?? GetCountryName(alpha2);
+    public string GetCountryName(string alpha2, string language = "en") => _countries[alpha2][language] ?? throw new InvalidOperationException($"'{language}' name for country {alpha2} does not exist");
 }

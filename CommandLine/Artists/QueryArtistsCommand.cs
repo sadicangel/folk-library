@@ -3,13 +3,13 @@ using MediatR;
 using Spectre.Console;
 using System.CommandLine;
 
-namespace FolkLibrary;
+namespace FolkLibrary.Artists;
 
 internal sealed class QueryArtistsCommand : Command
 {
-    public QueryArtistsCommand() : base("artist", "Query artists")
+    public QueryArtistsCommand() : base("get", "Query artists")
     {
-        AddOption(new Option<string>("--artis-id", "Find by id."));
+        AddOption(new Option<Guid>("--id", "Find by id."));
         AddOption(new Option<string>("--name", "Filter by name."));
         AddOption(new Option<string>("--country-code", "Filter by country code."));
         AddOption(new Option<string>("--country-name", "Filter by country."));
@@ -19,13 +19,13 @@ internal sealed class QueryArtistsCommand : Command
         AddOption(new Option<string>("--year", "Filter created at year."));
         AddOption(new Option<string>("--after-year", "Filter created at or after year."));
         AddOption(new Option<string>("--before-year", "Filter created at or before year."));
-        AddOption(new Option<Sort>("--sort", "Sort artists by a column."));
+        AddOption(new Option<OrderBy>("--order-by", "Order artists by a column."));
     }
 }
 
 internal sealed record class QueryArtists
 (
-    Guid? ArtistId = null,
+    Guid? Id = null,
     string? Name = null,
     string? CountryCode = null,
     string? CountryName = null,
@@ -35,7 +35,7 @@ internal sealed record class QueryArtists
     int? Year = null,
     int? AfterYear = null,
     int? BeforeYear = null,
-    string? Sort = null
+    string? OrderBy = null
 ) : IRequest<int>;
 
 internal sealed class QueryArtistsHandler : IRequestHandler<QueryArtists, int>
@@ -56,9 +56,9 @@ internal sealed class QueryArtistsHandler : IRequestHandler<QueryArtists, int>
     public Task<int> Handle(QueryArtists request, CancellationToken cancellationToken) => _console.Unwrap(async () =>
     {
         IReadOnlyList<Artist> artists = Array.Empty<Artist>();
-        if (request.ArtistId is not null)
+        if (request.Id is not null)
         {
-            var artist = await _httpClient.GetArtistAsync(request.ArtistId.Value, cancellationToken);
+            var artist = await _httpClient.GetArtistAsync(request.Id.Value, cancellationToken);
             if (artist is not null)
                 artists = new List<Artist>() { artist };
         }
@@ -74,7 +74,7 @@ internal sealed class QueryArtistsHandler : IRequestHandler<QueryArtists, int>
                 request.Year,
                 request.AfterYear,
                 request.BeforeYear,
-                request.Sort is null ? null : Sort.Parse(request.Sort, null),
+                request.OrderBy is null ? null : OrderBy.Parse(request.OrderBy, null),
                 cancellationToken);
 
             artists = response.Artists;
@@ -88,7 +88,7 @@ internal sealed class QueryArtistsHandler : IRequestHandler<QueryArtists, int>
             var cells = new Text[Getters.Count];
             int i = 0;
             foreach (var (_, getter) in Getters)
-                cells[i++] = new Text(getter.Invoke(artist) ?? String.Empty);
+                cells[i++] = new Text(getter.Invoke(artist) ?? string.Empty);
             table.AddRow(cells);
         }
 

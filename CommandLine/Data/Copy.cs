@@ -2,7 +2,7 @@
 using Spectre.Console;
 using System.CommandLine;
 
-namespace FolkLibrary;
+namespace FolkLibrary.Data;
 
 internal sealed class CopyCommand : Command
 {

@@ -1,5 +1,8 @@
-﻿using MediatR;
-using Spectre.Console;
+﻿using FolkLibrary.Albums;
+using FolkLibrary.Artists;
+using FolkLibrary.Data;
+using FolkLibrary.Tracks;
+using MediatR;
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
 
@@ -7,28 +10,46 @@ namespace FolkLibrary;
 
 internal sealed class Parser
 {
-    private readonly IAnsiConsole _console;
     private readonly IMediator _mediator;
     private readonly RootCommand _rootCommand;
 
-    public Parser(IAnsiConsole console, IMediator mediator)
+    public Parser(IMediator mediator)
     {
-        _console = console;
         _mediator = mediator;
         _rootCommand = new RootCommand
         {
-            new HelloCommand
+            new Command("data", "Data operations")
             {
-                Handler = CommandHandler.Create<Hello, CancellationToken>(HandleOptions)
+                new CopyCommand
+                {
+                    Handler = CommandHandler.Create<Copy, CancellationToken>(HandleOptions)
+                },
             },
-            new CopyCommand
+            new Command("artist", "Operations related to artists")
             {
-                Handler = CommandHandler.Create<Copy, CancellationToken>(HandleOptions)
+                new QueryArtistsCommand
+                {
+                    Handler = CommandHandler.Create<QueryArtists, CancellationToken>(HandleOptions)
+                }
             },
-            new QueryArtistsCommand
+            new Command("album", "Operations related to albums")
             {
-                Handler = CommandHandler.Create<QueryArtists, CancellationToken>(HandleOptions)
-            }
+                new QueryAlbumsCommand
+                {
+                    Handler = CommandHandler.Create<QueryAlbums, CancellationToken>(HandleOptions)
+                }
+            },
+            new Command("track", "Operations related to tracks")
+            {
+                new QueryTracksCommand
+                {
+                    Handler = CommandHandler.Create<QueryTracks, CancellationToken>(HandleOptions)
+                }
+            },
+            //new ExitCommand
+            //{
+            //    Handler = CommandHandler.Create<Exit, CancellationToken>(HandleOptions)
+            //}
         };
     }
     private Task<int> HandleOptions<TRequest>(TRequest request, CancellationToken cancellationToken) where TRequest : IRequest<int>

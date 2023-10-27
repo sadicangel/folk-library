@@ -1,49 +1,36 @@
-﻿using CommandLine;
-using FolkLibrary;
+﻿using FolkLibrary;
+using FolkLibrary.Infrastructure;
+using FolkLibrary.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Spectre.Console;
+using System.Text;
 
-//var countryInfo = JsonSerializer.Deserialize<List<CountryInfo>>(File.ReadAllText(@"D:\Development\folk-library\Application\Properties\Countries.json"))!
-//    .ToDictionary(x => x.alpha2, x => x.en, StringComparer.InvariantCultureIgnoreCase);
+var cancellationTokenSource = new CancellationTokenSource();
 
-//foreach (var artist in Directory.EnumerateDirectories(@"D:\Music\Folk").SkipLast(1))
-//{
-//    var file = Path.Combine(artist, "info.json");
+var builder = Host.CreateApplicationBuilder(args);
 
-//    var json = File.ReadAllText(file);
+builder.Logging.SetMinimumLevel(LogLevel.None);
 
-//    var node = JsonSerializer.Deserialize<JsonNode>(json)!.AsObject();
+builder.Services.AddDomain();
+builder.Services.AddApplication();
 
-//    var location = JsonNode.Parse($$"""
-//    {
-//        "countryCode": "{{(string?)node["country"]!}}",
-//        "countryName": "{{countryInfo[(string)node["country"]!]}}",
-//        "district": "{{(string?)node["district"]!}}",
-//        "municipality": "{{(string?)node["municipality"]!}}",
-//        "parish": "{{(string?)node["parish"]!}}"
-//    }
-//    """)!.AsObject();
+builder.Services.AddMediatR(opts => opts.RegisterServicesFromAssemblyContaining(typeof(Program)));
 
-//    var keysToRemove = location.Where(k => String.IsNullOrEmpty((string?)k.Value)).Select(k => k.Key).ToList();
-//    foreach (var key in keysToRemove)
-//        location.Remove(key);
+builder.Services.AddHttpClient(nameof(IFolkHttpClient), client => client.BaseAddress = new Uri("https://localhost:7001/"));
+builder.Services.AddFolkHttpClient(opts => opts.JsonSerializerOptions = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
 
-//    node.Remove("country");
-//    node.Remove("district");
-//    node.Remove("municipality");
-//    node.Remove("parish");
-//    node.Remove("isAbroad");
+builder.Services.AddSingleton(cancellationTokenSource);
+builder.Services.AddSingleton<Parser>();
+builder.Services.AddSingleton(provider =>
+{
+    if (Console.OutputEncoding != Encoding.UTF8)
+        Console.OutputEncoding = Encoding.UTF8;
+    return AnsiConsole.Console;
+});
+builder.Services.AddHostedService<ParserService>();
 
-//    node["location"] = location;
+var app = builder.Build();
 
-//    json = JsonSerializer.Serialize(node, new JsonSerializerOptions { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-
-//    File.WriteAllText(file, json);
-
-//    Console.WriteLine(Path.GetFileName(artist));
-//}
-
-//return;
-
-Parser.Default.ParseArguments<CopyArguments, object>(args)
-.WithParsed<CopyArguments>(CopyHandler.Handle);
-
-sealed record class CountryInfo(string alpha2, string en);
+await app.RunAsync(cancellationTokenSource.Token);

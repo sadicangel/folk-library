@@ -24,18 +24,6 @@ public static class ApplicationServices
         return services;
     }
 
-    public static IServiceCollection AddFolkHttpClient(this IServiceCollection services, Action<HttpClient> configureClient)
-    {
-        services.AddHttpClient<IFolkHttpClient, FolkHttpClient>(configureClient);
-        return services;
-    }
-
-    public static IServiceCollection AddFolkHttpClient(this IServiceCollection services, string httpClientName)
-    {
-        services.AddTransient<IFolkHttpClient>(provider => new FolkHttpClient(provider.GetRequiredService<IHttpClientFactory>().CreateClient(httpClientName)));
-        return services;
-    }
-
     public static IConfigurationBuilder AddContainersConfiguration(this IConfigurationBuilder configuration, string hostname)
     {
         var dockerClient = new DockerClientConfiguration().CreateClient();
@@ -57,7 +45,7 @@ public static class ApplicationServices
         return configuration;
     }
 
-    public static async Task LoadDatabaseData<THost>(this THost host, bool overwrite = false) where THost : IHost
+    public static async Task LoadDatabaseData<THost>(this THost host, string? folderName = null, bool overwrite = false) where THost : IHost
     {
         using var scope = host.Services.CreateScope();
         var documentStore = scope.ServiceProvider.GetRequiredService<IDocumentStore>();
@@ -69,7 +57,7 @@ public static class ApplicationServices
             statistics = await documentStore.Advanced.FetchEventStoreStatistics();
             if (statistics.StreamCount != 0)
                 throw new InvalidOperationException("Could not reset database data");
-            await scope.ServiceProvider.GetRequiredService<IDataImporter>().ImportAsync("D:/Music/Folk");
+            await scope.ServiceProvider.GetRequiredService<IDataImporter>().ImportAsync(folderName);
         }
         var validationResult = await scope.ServiceProvider.GetRequiredService<IDataValidator>().ValidateAsync();
         if (!validationResult.IsValid)

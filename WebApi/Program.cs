@@ -29,6 +29,6 @@ app.UseHttpsRedirection();
 app.MapArtistEndpoints();
 app.MapAlbumEndpoints();
 
-await app.LoadDatabaseData(overwrite: true);
+await app.LoadDatabaseData(folderName: /*"D:/Music/Folk"*/ null, overwrite: false);
 
 app.Run();

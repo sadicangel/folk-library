@@ -25,8 +25,8 @@ internal sealed class ArtistStateProvider
     {
         if (!_artistsByPage.TryGetValue(index, out var list))
         {
-            var page = await _httpClient.GetArtistsAsync(pageIndex: index, pageSize: size);
-            _artistsByPage[index] = list = page.Items;
+            var page = await _httpClient.GetArtistsAsync();
+            _artistsByPage[index] = list = page.Artists;
             AddRange(list);
         }
         return list;

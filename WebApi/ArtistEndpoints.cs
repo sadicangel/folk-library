@@ -33,13 +33,14 @@ public static class ArtistEndpoints
         string? district,
         string? municipality,
         string? parish,
-        int? year,
-        int? afterYear,
-        int? beforeYear,
+        Param<int>? year,
+        Param<int>? afterYear,
+        Param<int>? beforeYear,
+        Param<Sort>? sort,
         IRequestHandler<GetArtists, Result<GetArtistsResponse>> handler,
         CancellationToken cancellationToken)
     {
-        var command = new GetArtists(name, countryCode, countryName, district, municipality, parish, year, afterYear, beforeYear);
+        var command = new GetArtists(name, countryCode, countryName, district, municipality, parish, year, afterYear, beforeYear, sort);
 
         return handler.Handle(command, cancellationToken).ToResultAsync();
     }

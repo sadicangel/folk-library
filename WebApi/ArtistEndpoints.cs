@@ -1,6 +1,7 @@
 ﻿using DotNext;
 using FolkLibrary.Artists;
 using MediatR;
+using System.Net;
 
 namespace FolkLibrary.Infrastructure;
 
@@ -9,12 +10,59 @@ public static class ArtistEndpoints
     public static IEndpointRouteBuilder MapArtistEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/artists");
-        group.MapPost("/", CreateArtist);
-        group.MapGet("/", GetArtists);
-        group.MapGet("/{artistId}", GetArtistById);
-        group.MapPut("/{artistId}", UpdateArtistInfo);
-        group.MapPut("/{artistId}/{albumId}", AddArtistAlbum);
-        group.MapDelete("/{artistId}/{albumId}", RemoveArtistAlbum);
+
+        group.MapPost("/", CreateArtist)
+            .WithName("create-artist")
+            .WithDisplayName($"Creates {nameof(Artist)}")
+            .WithSummary($"Creates a new {nameof(Artist)}")
+            .WithDescription($"Creates a new {nameof(Artist)}")
+            .Produces<Guid>()
+            .ProducesValidationProblem();
+
+        group.MapGet("/", GetArtists)
+            .WithName("get-artists")
+            .WithDisplayName($"Gets {nameof(Artist)}s")
+            .WithSummary($"Gets {nameof(Artist)}s")
+            .WithDescription($"Gets {nameof(Artist)}s")
+            .Produces<GetArtistsResponse>()
+            .ProducesValidationProblem();
+
+        group.MapGet("/{artistId}", GetArtistById)
+            .WithName("get-artist")
+            .WithDisplayName($"Get {nameof(Artist)}")
+            .WithSummary($"Get {nameof(Artist)} by ID")
+            .WithDescription($"Get {nameof(Artist)} by ID")
+            .Produces<Artist>()
+            .ProducesValidationProblem()
+            .Produces((int)HttpStatusCode.NotFound);
+
+        group.MapPut("/{artistId}", UpdateArtistInfo)
+            .WithName("update-artist")
+            .WithDisplayName($"Updates {nameof(Artist)}")
+            .WithSummary($"Updates an {nameof(Artist)}")
+            .WithDescription($"Updates an existing {nameof(Artist)}")
+            .Produces((int)HttpStatusCode.OK)
+            .ProducesValidationProblem()
+            .Produces((int)HttpStatusCode.NotFound);
+
+        group.MapPut("/{artistId}/{albumId}", AddArtistAlbum)
+            .WithName("add-artist-album")
+            .WithDisplayName($"Adds {nameof(Album)} to {nameof(Artist)}")
+            .WithSummary($"Adds {nameof(Album)} to an {nameof(Artist)}")
+            .WithDescription($"Adds {nameof(Album)} to an existing {nameof(Artist)}")
+            .Produces((int)HttpStatusCode.OK)
+            .ProducesValidationProblem()
+            .Produces((int)HttpStatusCode.NotFound);
+
+        group.MapDelete("/{artistId}/{albumId}", RemoveArtistAlbum)
+            .WithName("remove-artist-album")
+            .WithDisplayName($"Removes {nameof(Album)} from {nameof(Artist)}")
+            .WithSummary($"Removes {nameof(Album)} from an {nameof(Artist)}")
+            .WithDescription($"Removes {nameof(Album)} from an existing {nameof(Artist)}")
+            .Produces((int)HttpStatusCode.OK)
+            .ProducesValidationProblem()
+            .Produces((int)HttpStatusCode.NotFound);
+
         return endpoints;
     }
 

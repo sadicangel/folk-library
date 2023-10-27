@@ -1,6 +1,7 @@
 ﻿using DotNext;
 using FolkLibrary.Albums;
 using MediatR;
+using System.Net;
 
 namespace FolkLibrary.Infrastructure;
 
@@ -9,11 +10,50 @@ public static class AlbumEndpoints
     public static IEndpointRouteBuilder MapAlbumEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/albums");
-        group.MapPost("/", CreateAlbum);
-        group.MapGet("/", GetAlbums);
-        group.MapGet("/{artistId}", GetAlbumById);
-        group.MapPut("/{albumId}", UpdateAlbumInfo);
-        group.MapPut("/{albumId}/{trackId}", AddAlbumTrack);
+
+        group.MapPost("/", CreateAlbum)
+            .WithName("create-album")
+            .WithDisplayName($"Creates {nameof(Album)}")
+            .WithSummary($"Creates a new {nameof(Album)}")
+            .WithDescription($"Creates a new {nameof(Album)}")
+            .Produces<Guid>()
+            .ProducesValidationProblem();
+
+        group.MapGet("/", GetAlbums)
+            .WithName("get-albums")
+            .WithDisplayName($"Gets {nameof(Album)}s")
+            .WithSummary($"Gets {nameof(Album)}s")
+            .WithDescription($"Gets {nameof(Album)}s")
+            .Produces<GetAlbumsResponse>()
+            .ProducesValidationProblem();
+
+        group.MapGet("/{artistId}", GetAlbumById)
+            .WithName("get-album")
+            .WithDisplayName($"Get {nameof(Album)}")
+            .WithSummary($"Get {nameof(Album)} by ID")
+            .WithDescription($"Get {nameof(Album)} by ID")
+            .Produces<Album>()
+            .ProducesValidationProblem()
+            .Produces((int)HttpStatusCode.NotFound);
+
+        group.MapPut("/{albumId}", UpdateAlbumInfo)
+            .WithName("update-album")
+            .WithDisplayName($"Updates {nameof(Album)}")
+            .WithSummary($"Updates an {nameof(Album)}")
+            .WithDescription($"Updates an existing {nameof(Album)}")
+            .Produces((int)HttpStatusCode.OK)
+            .ProducesValidationProblem()
+            .Produces((int)HttpStatusCode.NotFound);
+
+        group.MapPut("/{albumId}/{trackId}", AddAlbumTrack)
+            .WithName("add-album-track")
+            .WithDisplayName($"Adds {nameof(Track)} to {nameof(Album)}")
+            .WithSummary($"Adds {nameof(Track)} to an {nameof(Album)}")
+            .WithDescription($"Adds {nameof(Track)} to an existing {nameof(Album)}")
+            .Produces((int)HttpStatusCode.OK)
+            .ProducesValidationProblem()
+            .Produces((int)HttpStatusCode.NotFound);
+
         return endpoints;
     }
 

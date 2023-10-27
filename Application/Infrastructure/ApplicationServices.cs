@@ -45,7 +45,7 @@ public static class ApplicationServices
         return configuration;
     }
 
-    public static async Task LoadDatabaseData<THost>(this THost host, string? folderName = null, bool overwrite = false) where THost : IHost
+    public static async Task LoadDatabaseData<THost>(this THost host, string? folderName = null, bool validate = false, bool overwrite = false) where THost : IHost
     {
         using var scope = host.Services.CreateScope();
         var documentStore = scope.ServiceProvider.GetRequiredService<IDocumentStore>();
@@ -59,8 +59,11 @@ public static class ApplicationServices
                 throw new InvalidOperationException("Could not reset database data");
             await scope.ServiceProvider.GetRequiredService<IDataImporter>().ImportAsync(folderName);
         }
-        var validationResult = await scope.ServiceProvider.GetRequiredService<IDataValidator>().ValidateAsync();
-        if (!validationResult.IsValid)
-            throw new ValidationException(validationResult.Errors);
+        if (validate || overwrite)
+        {
+            var validationResult = await scope.ServiceProvider.GetRequiredService<IDataValidator>().ValidateAsync();
+            if (!validationResult.IsValid)
+                throw new ValidationException(validationResult.Errors);
+        }
     }
 }

@@ -30,6 +30,6 @@ app.MapArtistEndpoints();
 app.MapAlbumEndpoints();
 app.MapTrackEndpoints();
 
-await app.LoadDatabaseData(folderName: /*"D:/Music/Folk"*/ null, overwrite: false);
+await app.LoadDatabaseData(folderName: /*"D:/Music/Folk"*/ null, validate: false, overwrite: false);
 
 app.Run();

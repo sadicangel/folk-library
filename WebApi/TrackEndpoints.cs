@@ -1,6 +1,7 @@
 ﻿using DotNext;
 using FolkLibrary.Tracks;
 using MediatR;
+using System.Net;
 
 namespace FolkLibrary.Infrastructure;
 
@@ -9,8 +10,24 @@ public static class TrackEndpoints
     public static IEndpointRouteBuilder MapTrackEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/tracks");
-        group.MapGet("/", GetTracks);
-        group.MapGet("/{artistId}", GetTrackById);
+
+        group.MapGet("/", GetTracks)
+            .WithName("get-tracks")
+            .WithDisplayName($"Gets {nameof(Track)}s")
+            .WithSummary($"Gets {nameof(Track)}s")
+            .WithDescription($"Gets {nameof(Track)}s")
+            .Produces<GetTracksResponse>()
+            .ProducesValidationProblem();
+
+        group.MapGet("/{artistId}", GetTrackById)
+            .WithName("get-track")
+            .WithDisplayName($"Get {nameof(Track)}")
+            .WithSummary($"Get {nameof(Track)} by ID")
+            .WithDescription($"Get {nameof(Album)} by ID")
+            .Produces<Album>()
+            .ProducesValidationProblem()
+            .Produces((int)HttpStatusCode.NotFound);
+
         return endpoints;
     }
 

@@ -1,5 +1,5 @@
-using Duende.Bff.Yarp;
 using FolkLibrary.Infrastructure;
+using Yarp.ReverseProxy.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,8 +8,25 @@ var webApiUrl = builder.Configuration.GetConnectionString("WebApi");
 if (String.IsNullOrEmpty(webApiUrl))
     throw new InvalidOperationException("Invalid WebApi URL");
 
-builder.Services.AddBff()
-    .AddRemoteApis();
+var cluster = new ClusterConfig
+{
+    ClusterId = $"cluster-{Guid.NewGuid():N}",
+    Destinations = new Dictionary<string, DestinationConfig>
+    {
+        [$"destination-{Guid.NewGuid():N}"] = new DestinationConfig { Address = "https://localhost:7001" }
+    }
+};
+var route = new RouteConfig
+{
+    RouteId = $"route-{Guid.NewGuid():N}",
+    ClusterId = cluster.ClusterId,
+    Match = new RouteMatch { Path = "/api/{**catch-all}" }
+};
+
+builder.Services.AddReverseProxy()
+    .LoadFromMemory(new List<RouteConfig> { route }, new List<ClusterConfig> { cluster });
+//builder.Services.AddBff()
+//    .AddRemoteApis();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -34,12 +51,12 @@ app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.UseBff();
 app.UseAuthorization();
 
-app.MapRemoteBffApiEndpoint("/api", $"{webApiUrl}/api")
-     .WithOptionalUserAccessToken()
-     .AllowAnonymous();
+//app.MapRemoteBffApiEndpoint("/api", $"{webApiUrl}/api")
+//     .WithOptionalUserAccessToken()
+//     .AllowAnonymous();
+app.MapReverseProxy();
 
 app.MapRazorPages();
 app.MapControllers();

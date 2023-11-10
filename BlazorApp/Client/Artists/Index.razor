@@ -15,6 +15,7 @@
         <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.ShortName)))">Name</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.Name)))">Full Name</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.Year)))">Year</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.Location.CountryCode)))">Country</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<Artist, object>(x => SortBy(x, nameof(Artist.Location)))">Location</MudTableSortLabel></MudTh>
     </HeaderContent>
     <RowTemplate>
@@ -23,7 +24,7 @@
         <MudTd DataLabel="FullName">@context.Name</MudTd>
         <MudTd DataLabel="Year">@context.YearString</MudTd>
         <MudTd DataLabel="Country"><MudImage Height="24" Src="@GetCountryImageUrl(context.Location.CountryCode)" Alt="context.Location.CountryName" /></MudTd>
-        <MudTd DataLabel="Location">@context.Location</MudTd>
+        <MudTd DataLabel="Location">@context.Location.CountryName</MudTd>
     </RowTemplate>
 </MudTable>
 

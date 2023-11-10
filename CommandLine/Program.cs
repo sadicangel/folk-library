@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using System.Text;
+using System.Text.Json;
 
 var cancellationTokenSource = new CancellationTokenSource();
 
@@ -19,7 +20,7 @@ builder.Services.AddApplication();
 builder.Services.AddMediatR(opts => opts.RegisterServicesFromAssemblyContaining(typeof(Program)));
 
 builder.Services.AddHttpClient(nameof(IFolkHttpClient), client => client.BaseAddress = new Uri("https://localhost:7001/"));
-builder.Services.AddFolkHttpClient(opts => opts.JsonSerializerOptions = new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web));
+builder.Services.AddFolkHttpClient(opts => opts.JsonSerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
 builder.Services.AddSingleton(cancellationTokenSource);
 builder.Services.AddSingleton<Parser>();

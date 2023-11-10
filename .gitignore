@@ -352,4 +352,4 @@ MigrationBackup/
 
 # Custom
 /FolkLibrary/ClientApp/.angular/cache/14.1.0
-_postgres/
+docker_local/

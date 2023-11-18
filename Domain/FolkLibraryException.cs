@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace FolkLibrary;
+﻿namespace FolkLibrary;
 public sealed class FolkLibraryException : InvalidOperationException
 {
     public FolkLibraryException()
@@ -8,10 +6,6 @@ public sealed class FolkLibraryException : InvalidOperationException
     }
 
     public FolkLibraryException(string? message) : base(message)
-    {
-    }
-
-    public FolkLibraryException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
     }
 

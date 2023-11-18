@@ -1,5 +1,4 @@
 using FolkLibrary.Infrastructure;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 
@@ -7,7 +6,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((host, opts) => opts.WriteTo.Console().MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Warning));
 
-builder.Services.AddSingleton<ISystemClock, SystemClock>();
 builder.Services.AddSingleton<IFileProvider>(services => services.GetRequiredService<IWebHostEnvironment>().ContentRootFileProvider);
 
 builder.Services.AddDomain();

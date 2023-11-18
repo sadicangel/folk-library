@@ -10,14 +10,9 @@ public interface IUuidProvider
     Task<Guid> ProvideUuidAsync(CancellationToken cancellationToken = default);
 }
 
-internal sealed class UuidProvider : IUuidProvider
+internal sealed class UuidProvider(NpgsqlDataSource dataSource) : IUuidProvider
 {
-    private readonly NpgsqlDataSource _dataSource;
-
-    public UuidProvider(NpgsqlDataSource dataSource)
-    {
-        _dataSource = dataSource;
-    }
+    private readonly NpgsqlDataSource _dataSource = dataSource;
 
     public async Task<Guid> ProvideUuidAsync(CancellationToken cancellationToken = default)
     {
@@ -87,7 +82,7 @@ internal sealed class UuidProvider : IUuidProvider
 
             static void SwapBytes(Span<byte> guid, int left, int right)
             {
-                ref var first = ref Unsafe.AsRef(guid[0]);
+                ref var first = ref Unsafe.AsRef(ref guid[0]);
                 (Unsafe.Add(ref first, right), Unsafe.Add(ref first, left)) = (Unsafe.Add(ref first, left), Unsafe.Add(ref first, right));
             }
         }

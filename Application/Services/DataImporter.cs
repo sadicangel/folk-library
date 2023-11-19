@@ -5,6 +5,7 @@ using FolkLibrary.Tracks;
 using MediatR;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using Polly;
 using System.Text.Json;
 
 namespace FolkLibrary.Services;
@@ -22,6 +23,14 @@ internal sealed class DataImporter(
     IFileProvider fileProvider) : IDataImporter
 {
     private static readonly JsonSerializerOptions? JsonOptions = new(JsonSerializerDefaults.Web);
+
+    private static readonly ResiliencePipeline Pipeline = new ResiliencePipelineBuilder()
+        .AddRetry(new Polly.Retry.RetryStrategyOptions
+        {
+            MaxRetryAttempts = 3,
+            Delay = TimeSpan.FromSeconds(5),
+        })
+        .Build();
 
     public async Task ImportAsync(string? folderName = null)
     {
@@ -50,6 +59,12 @@ internal sealed class DataImporter(
             var albumFolders = Directory.GetDirectories(folder);
             foreach (var albumFolder in albumFolders)
             {
+                if (albumFolder.Contains("Neiva 1"))
+                {
+                    logger.LogWarning("Skipping album {albumName}", "Grupo Danças e Cantares do Neiva 1");
+                    continue;
+                }
+
                 var album = CreateAlbum(albumFolder);
                 var albumId = await mediator.Send(album).UnwrapAsync();
 

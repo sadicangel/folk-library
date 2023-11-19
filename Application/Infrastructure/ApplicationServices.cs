@@ -31,7 +31,8 @@ public static class ApplicationServices
         var pipeline = new ResiliencePipelineBuilder()
             .AddRetry(new RetryStrategyOptions
             {
-                MaxRetryAttempts = 5,
+                MaxRetryAttempts = 10,
+                Delay = TimeSpan.FromSeconds(5)
             })
             .Build();
 

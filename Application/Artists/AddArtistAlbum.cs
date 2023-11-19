@@ -17,37 +17,28 @@ public sealed class AddArtistAlbumValidator : AbstractValidator<AddArtistAlbum>
     }
 }
 
-public sealed class AddArtistAlbumHandler : IRequestHandler<AddArtistAlbum, Result<Unit>>
+public sealed class AddArtistAlbumHandler(IValidator<AddArtistAlbum> validator, IDocumentSession documentSession) : IRequestHandler<AddArtistAlbum, Result<Unit>>
 {
-    private readonly IValidator<AddArtistAlbum> _validator;
-    private readonly IDocumentSession _documentSession;
-
-    public AddArtistAlbumHandler(IValidator<AddArtistAlbum> validator, IDocumentSession documentSession)
-    {
-        _validator = validator;
-        _documentSession = documentSession;
-    }
-
     public async Task<Result<Unit>> Handle(AddArtistAlbum request, CancellationToken cancellationToken)
     {
-        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+        var validationResult = await validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
             return new Result<Unit>(new ValidationException(validationResult.Errors));
 
-        var album = await _documentSession.Events.AggregateStreamAsync<Album>(request.AlbumId, token: cancellationToken);
+        var album = await documentSession.Events.AggregateStreamAsync<Album>(request.AlbumId, token: cancellationToken);
         if (album is null)
             return new Result<Unit>(new FolkLibraryException($"Album {request.AlbumId} does not exist"));
 
         var albumArtistAdded = new AlbumArtistAdded(request.ArtistId);
 
-        await _documentSession.Events.AppendOptimistic(request.AlbumId, albumArtistAdded);
+        await documentSession.Events.AppendOptimistic(request.AlbumId, albumArtistAdded);
 
         // TODO: Make this a notification instead?
         album = albumArtistAdded.Apply(album);
 
-        await _documentSession.Events.AppendOptimistic(request.ArtistId, new ArtistAlbumAdded(album));
+        await documentSession.Events.AppendOptimistic(request.ArtistId, new ArtistAlbumAdded(album));
 
-        await _documentSession.SaveChangesAsync(cancellationToken);
+        await documentSession.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;
     }

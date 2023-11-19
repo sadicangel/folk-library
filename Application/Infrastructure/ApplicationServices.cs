@@ -1,11 +1,12 @@
-﻿using Docker.DotNet;
-using Docker.DotNet.Models;
+﻿using Dapper;
 using FluentValidation;
 using FolkLibrary.Services;
 using Marten;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Npgsql;
+using Polly;
+using Polly.Retry;
 
 namespace FolkLibrary.Infrastructure;
 
@@ -24,30 +25,37 @@ public static class ApplicationServices
         return services;
     }
 
-    public static IConfigurationBuilder AddContainersConfiguration(this IConfigurationBuilder configuration, string hostname)
-    {
-        var dockerClient = new DockerClientConfiguration().CreateClient();
-        var containers = Task.Run(async () => await dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true })).Result;
-        var connectionStrings = new Dictionary<string, string?>();
-        foreach (var container in containers)
-        {
-            var ports = container.Ports.Where(p => p.PublicPort > 0).ToList();
-            if (ports.Count > 0)
-            {
-                var port = ports.Count == 1
-                    ? ports[0]
-                    : ports.Find(p => p.PrivatePort == 443 /*https*/) ?? ports[0];
-                var containerName = container.Names[0][1..];
-                connectionStrings[$"ConnectionStrings:{containerName}"] = $"https://{hostname}:{port.PublicPort}";
-            }
-        }
-        configuration.AddInMemoryCollection(connectionStrings);
-        return configuration;
-    }
-
     public static async Task LoadDatabaseData<THost>(this THost host, string? folderName = null, bool validate = false, bool overwrite = false) where THost : IHost
     {
         using var scope = host.Services.CreateScope();
+        var pipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions
+            {
+                MaxRetryAttempts = 5,
+            })
+            .Build();
+
+        await pipeline.ExecuteAsync(async cancellationToken =>
+        {
+            var dataSource = new NpgsqlDataSourceBuilder(
+                new NpgsqlConnectionStringBuilder(scope.ServiceProvider.GetRequiredService<NpgsqlDataSource>().ConnectionString)
+                {
+                    Database = "postgres"
+                }.ConnectionString)
+            .Build();
+
+            await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+            try
+            {
+                await connection.ExecuteAsync("CREATE DATABASE folk_library;");
+
+            }
+            catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.DuplicateDatabase)
+            {
+                // Already exists.
+            }
+        });
+
         var documentStore = scope.ServiceProvider.GetRequiredService<IDocumentStore>();
         var statistics = await documentStore.Advanced.FetchEventStoreStatistics();
         var isEmpty = statistics.StreamCount == 0;

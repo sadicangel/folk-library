@@ -1,9 +1,7 @@
-using FolkLibrary.Infrastructure;
 using Yarp.ReverseProxy.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddContainersConfiguration("localhost");
 var webApiUrl = builder.Configuration.GetConnectionString("WebApi");
 if (String.IsNullOrEmpty(webApiUrl))
     throw new InvalidOperationException("Invalid WebApi URL");

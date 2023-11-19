@@ -9,14 +9,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspire.Npgsql" Version="8.0.0-preview.1.23557.2" />
     <PackageReference Include="DotNext" Version="4.14.0" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.8.0" />
     <PackageReference Include="Generator.Equals" Version="3.0.0" />
     <PackageReference Include="Marten" Version="6.3.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0-rc.2.23479.6" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0-rc.2.23479.6" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0-rc.2.23479.6" />
-    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="8.0.0-rc.2.23479.6" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="8.0.0" />
+    <PackageReference Include="Polly" Version="8.2.0" />
   </ItemGroup>
   
 </Project>

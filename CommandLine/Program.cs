@@ -14,7 +14,7 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.Logging.SetMinimumLevel(LogLevel.None);
 
-builder.Services.AddDomain();
+builder.Services.AddDomain(builder.Configuration);
 builder.Services.AddApplication();
 
 builder.Services.AddMediatR(opts => opts.RegisterServicesFromAssemblyContaining(typeof(Program)));

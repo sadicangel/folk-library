@@ -5,6 +5,7 @@ using FolkLibrary.Tracks;
 using MediatR;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using Polly;
 using System.Text.Json;
 
 namespace FolkLibrary.Services;
@@ -16,26 +17,24 @@ public interface IDataImporter
 
 file readonly record struct ArtistIdentifier(Guid ArtistId, string ArtistFolder);
 
-internal sealed class DataImporter : IDataImporter
+internal sealed class DataImporter(
+    ILogger<DataImporter> logger,
+    IMediator mediator,
+    IFileProvider fileProvider) : IDataImporter
 {
     private static readonly JsonSerializerOptions? JsonOptions = new(JsonSerializerDefaults.Web);
-    private readonly ILogger<DataImporter> _logger;
-    private readonly IMediator _mediator;
-    private readonly IFileProvider _fileProvider;
 
-    public DataImporter(
-        ILogger<DataImporter> logger,
-        IMediator mediator,
-        IFileProvider fileProvider)
-    {
-        _logger = logger;
-        _mediator = mediator;
-        _fileProvider = fileProvider;
-    }
+    private static readonly ResiliencePipeline Pipeline = new ResiliencePipelineBuilder()
+        .AddRetry(new Polly.Retry.RetryStrategyOptions
+        {
+            MaxRetryAttempts = 3,
+            Delay = TimeSpan.FromSeconds(5),
+        })
+        .Build();
 
     public async Task ImportAsync(string? folderName = null)
     {
-        var dataFolder = folderName ?? _fileProvider.GetFileInfo("data").PhysicalPath;
+        var dataFolder = folderName ?? fileProvider.GetFileInfo("data").PhysicalPath;
 
         if (String.IsNullOrWhiteSpace(dataFolder))
             throw new FolkLibraryException("DataFolder not specified");
@@ -48,22 +47,28 @@ internal sealed class DataImporter : IDataImporter
         foreach (var artistFolder in Directory.EnumerateDirectories(dataFolder).SkipLast(1))
         {
             var createArtist = CreateArtist(artistFolder);
-            var artistId = await _mediator.Send(createArtist).UnwrapAsync();
-            _logger.LogInformation("{artistName}", createArtist.Name);
+            var artistId = await mediator.Send(createArtist).UnwrapAsync();
+            logger.LogInformation("{artistName}", createArtist.Name);
             artistsByName[createArtist.Name] = new ArtistIdentifier(artistId, artistFolder);
         }
 
-        // Create albums. "└──" : "├──"
+        // Create albums.
         foreach (var (artistName, (artistId, folder)) in artistsByName)
         {
-            _logger.LogInformation("{artistName}", artistName);
+            logger.LogInformation("{artistName}", artistName);
             var albumFolders = Directory.GetDirectories(folder);
             foreach (var albumFolder in albumFolders)
             {
-                var album = CreateAlbum(albumFolder);
-                var albumId = await _mediator.Send(album).UnwrapAsync();
+                if (albumFolder.Contains("Neiva 1"))
+                {
+                    logger.LogWarning("Skipping album {albumName}", "Grupo Danças e Cantares do Neiva 1");
+                    continue;
+                }
 
-                _logger.LogInformation("{marker} {albumName}",
+                var album = CreateAlbum(albumFolder);
+                var albumId = await mediator.Send(album).UnwrapAsync();
+
+                logger.LogInformation("{marker} {albumName}",
                     albumFolder == albumFolders[^1] ? "└──" : "├──",
                     album.Name);
 
@@ -72,7 +77,7 @@ internal sealed class DataImporter : IDataImporter
                 {
                     var track = CreateTrack(trackFile, out var performers);
 
-                    _logger.LogInformation("{marker1} {marker} {trackNumber:00} {trackName}",
+                    logger.LogInformation("{marker1} {marker} {trackNumber:00} {trackName}",
                         albumFolder == albumFolders[^1] ? "    " : "│   ",
                         trackFile == trackFiles[^1] ? "└──" : "├──",
                         track.Number,
@@ -84,24 +89,24 @@ internal sealed class DataImporter : IDataImporter
                     if (!performers.TryGetValue(artistName, out var k))
                         throw new FolkLibraryException($"Artist '{artistName}' does not match artist for track {trackFile}");
 
-                    var trackId = await _mediator.Send(track).UnwrapAsync();
-                    await _mediator.Send(new AddAlbumTrack(albumId, trackId));
+                    var trackId = await mediator.Send(track).UnwrapAsync();
+                    await mediator.Send(new AddAlbumTrack(albumId, trackId));
                 }
 
-                await _mediator.Send(new AddArtistAlbum(artistId, albumId));
+                await mediator.Send(new AddArtistAlbum(artistId, albumId));
             }
         }
 
         const string variousArtists = "Vários Artistas";
-        _logger.LogInformation("{artistName}", variousArtists);
+        logger.LogInformation("{artistName}", variousArtists);
         //var albumTracksByArtistId = new Dictionary<Guid, Dictionary<Guid, List<int>>>();
         var variousAlbums = Directory.GetDirectories(Path.Combine(dataFolder, variousArtists));
         foreach (var albumFolder in variousAlbums)
         {
             var album = CreateAlbum(albumFolder);
-            var albumId = await _mediator.Send(album).UnwrapAsync();
+            var albumId = await mediator.Send(album).UnwrapAsync();
 
-            _logger.LogInformation("{marker} {albumName}",
+            logger.LogInformation("{marker} {albumName}",
                 albumFolder == variousAlbums[^1] ? "└──" : "├──",
                 album.Name);
 
@@ -111,9 +116,9 @@ internal sealed class DataImporter : IDataImporter
             foreach (var trackFile in trackFiles)
             {
                 var track = CreateTrack(trackFile, out var performers);
-                var trackId = await _mediator.Send(track).UnwrapAsync();
+                var trackId = await mediator.Send(track).UnwrapAsync();
 
-                _logger.LogInformation("{marker1} {marker} {trackNumber:00} {trackName}",
+                logger.LogInformation("{marker1} {marker} {trackNumber:00} {trackName}",
                     albumFolder == variousAlbums[^1] ? "    " : "│   ",
                     trackFile == trackFiles[^1] ? "└──" : "├──",
                     track.Number,
@@ -128,11 +133,11 @@ internal sealed class DataImporter : IDataImporter
                     //    tracksByArtistId[artist.ArtistId] = artistTracks = new List<int>();
                     //artistTracks.Add(track.Number);
                 }
-                await _mediator.Send(new AddAlbumTrack(albumId, trackId));
+                await mediator.Send(new AddAlbumTrack(albumId, trackId));
             }
 
             foreach (var artistId in artistIds)
-                await _mediator.Send(new AddArtistAlbum(artistId, albumId));
+                await mediator.Send(new AddArtistAlbum(artistId, albumId));
         }
     }
 

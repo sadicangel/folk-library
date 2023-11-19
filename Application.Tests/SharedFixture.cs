@@ -1,4 +1,5 @@
 using FolkLibrary.Infrastructure;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FolkLibrary;
@@ -29,14 +30,13 @@ public sealed class SharedFixture : IAsyncLifetime
 
         var host = Host
             .CreateDefaultBuilder()
-            .ConfigureAppConfiguration(configuration =>
+            .ConfigureAppConfiguration((host, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                var options = PostgresOptions.FromConnectionString(_postgreSqlContainer.GetConnectionString());
-                configuration.AddJsonObject(options);
-            })
-            .ConfigureServices(services =>
+                ["ConnectionStrings:folk_library"] = _postgreSqlContainer.GetConnectionString()
+            }))
+            .ConfigureServices((host, services) =>
             {
-                services.AddDomain();
+                services.AddDomain(host.Configuration);
                 services.AddApplication();
                 configure?.Invoke(services);
             }).Build();

@@ -9,9 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Application\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi", "WebApi\WebApi.csproj", "{AEFADD2A-B6EB-4B28-AB8F-B7BB0074DDD2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp.Server", "BlazorApp\Server\BlazorApp.Server.csproj", "{5DA241B1-720E-4428-85BE-9BBE4B8A36DE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp.Server", "BlazorApp_old\Server\BlazorApp.Server.csproj", "{5DA241B1-720E-4428-85BE-9BBE4B8A36DE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp.Client", "BlazorApp\Client\BlazorApp.Client.csproj", "{877EEE9A-F375-4ADF-BA0E-A7060E3DE296}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp.Client", "BlazorApp_old\Client\BlazorApp.Client.csproj", "{877EEE9A-F375-4ADF-BA0E-A7060E3DE296}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommandLine", "CommandLine\CommandLine.csproj", "{80F3EF5C-2E3C-4363-B2D9-31C8DCA52D8F}"
 EndProject

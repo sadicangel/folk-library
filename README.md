@@ -1,2 +1,3 @@
 # folk-library
-An app for searching folk albums.
+
+An app for viewing and searching _my_ folk albums.

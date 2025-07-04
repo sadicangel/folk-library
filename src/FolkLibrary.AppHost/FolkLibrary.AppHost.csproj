@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.0.0" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsAspireHost>true</IsAspireHost>
+    <UserSecretsId>7ef84062-1338-45ec-b03e-e362d360aa1a</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FolkLibrary.BlazorApp\FolkLibrary.BlazorApp\FolkLibrary.BlazorApp.csproj" />
+    <ProjectReference Include="..\FolkLibrary.DataImporter\FolkLibrary.DataImporter.csproj" />
+    <ProjectReference Include="..\FolkLibrary.WebApi\FolkLibrary.WebApi.csproj" />
+  </ItemGroup>
+
+</Project>

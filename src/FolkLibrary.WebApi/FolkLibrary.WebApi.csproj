@@ -6,7 +6,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FolkLibrary.BlazorApp\FolkLibrary.BlazorApp\FolkLibrary.BlazorApp.csproj" />
     <ProjectReference Include="..\FolkLibrary.Domain\FolkLibrary.Domain.csproj" />
     <ProjectReference Include="..\FolkLibrary.ServiceDefaults\FolkLibrary.ServiceDefaults.csproj" />
   </ItemGroup>

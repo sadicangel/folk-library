@@ -16,7 +16,7 @@ var webApi = builder.AddProject<Projects.FolkLibrary_WebApi>("folk-library-web-a
 
 var webApp = builder.AddProject<Projects.FolkLibrary_BlazorApp>("folk-library-blazor-app")
     .WithReference(webApi)
-    .WithEnvironment("FolkLibraryEndpoint", webApi.GetEndpoint("https"))
+    .WithEnvironment("FolkLibrary__Url", webApi.GetEndpoint("https"))
     .WaitFor(webApi);
 
 builder.Build().Run();

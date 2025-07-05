@@ -1,6 +1,7 @@
 ﻿using FolkLibrary.BlazorApp.Client.Services;
 using FolkLibrary.BlazorApp.Components;
 using FolkLibrary.ServiceDefaults;
+using Microsoft.FluentUI.AspNetCore.Components;
 using Refit;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,12 +11,13 @@ builder.AddServiceDefaults();
 builder.Services.AddHttpForwarderWithServiceDiscovery();
 
 builder.Services.AddRefitClient<IFolkLibraryApi>()
-    .ConfigureHttpClient(http => http.BaseAddress = new Uri(builder.Configuration["FolkLibraryEndpoint"]!));
+    .ConfigureHttpClient(http => http.BaseAddress = new Uri(builder.Configuration["FolkLibrary:Url"]!));
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+builder.Services.AddFluentUIComponents();
 
 var app = builder.Build();
 
@@ -41,6 +43,6 @@ app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(FolkLibrary.BlazorApp.Client._Imports).Assembly);
 
-app.MapForwarder("/api/{**catchAll}", builder.Configuration["FolkLibraryEndpoint"]!, "/api/{**catchAll}");
+app.MapForwarder("/api/{**catchAll}", builder.Configuration["FolkLibrary:Url"]!, "/api/{**catchAll}");
 
 app.Run();

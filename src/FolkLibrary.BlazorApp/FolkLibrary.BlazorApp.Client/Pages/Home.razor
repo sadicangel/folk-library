@@ -1,20 +1,7 @@
 ﻿@page "/"
-@using System.Text.Json
-@inject IFolkLibraryApi api;
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
-Welcome to your new app.
-
-<pre>@artists</pre>
-
-@code{
-    string? artists;
-
-    protected override async Task OnInitializedAsync()
-    {
-        artists = (await api.GetArtists())?.ToString();
-    }
-}
+Welcome to your new Fluent Blazor app.

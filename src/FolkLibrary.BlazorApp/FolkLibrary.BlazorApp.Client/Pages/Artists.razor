@@ -1,0 +1,27 @@
+﻿@page "/artists"
+@attribute [StreamRendering]
+@inject IFolkLibraryApi folkLibraryApi
+@rendermode InteractiveAuto
+
+<PageTitle>Artists</PageTitle>
+
+<h1>Artists</h1>
+
+<p>This component demonstrates list artists.</p>
+
+<!-- This page is rendered in SSR mode, so the FluentDataGrid component does not offer any interactivity (like sorting). -->
+<FluentDataGrid Id="artistgrid" Items="@artists" GridTemplateColumns="1fr 1fr 1fr 2fr" Loading="@(artists == null)" Style="height:204px;" TGridItem="ArtistView">
+    <PropertyColumn Title="Name" Property="@(c => c.ShortName)" Align="Align.Start" Sortable="true" />
+    <PropertyColumn Title="Year" Property="@(c => c.YearString)" Align="Align.End" Sortable="true" />
+    <PropertyColumn Title="Location" Property="@(c => c.Location)" Align="Align.End" />
+    <PropertyColumn Title="Full Name" Property="@(c => c.Name)" Align="Align.Start" Sortable="true" />
+</FluentDataGrid>
+
+@code {
+    private IQueryable<ArtistView>? artists;
+
+    protected override async Task OnInitializedAsync()
+    {
+        artists = (await folkLibraryApi.GetArtists()).AsQueryable();
+    }
+}
